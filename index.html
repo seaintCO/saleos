@@ -1,0 +1,545 @@
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SalesOS Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3f3f46;
+        }
+
+        /* Hide scrollbar for clean sidebar but allow scrolling */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Glass utility */
+        .glass-card {
+            background: rgba(24, 24, 27, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(63, 63, 70, 0.4);
+        }
+    </style>
+</head>
+<body class="text-zinc-100 antialiased min-h-screen flex selection:bg-blue-500/30 selection:text-white">
+
+    <!-- Sidebar (Hidden on mobile, fixed on desktop) -->
+    <aside class="hidden md:flex flex-col w-64 fixed inset-y-0 left-0 bg-black border-r border-zinc-800/60 z-20">
+        <!-- Logo -->
+        <div class="h-16 flex items-center px-6 border-b border-zinc-800/60">
+            <span class="text-lg font-medium tracking-tighter text-white flex items-center gap-2">
+                <div class="w-6 h-6 rounded bg-gradient-to-tr from-blue-600 to-blue-400 flex items-center justify-center">
+                    <iconify-icon icon="solar:chart-square-linear" class="text-white text-sm" style="stroke-width: 2;"></iconify-icon>
+                </div>
+                SALESOS
+            </span>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 overflow-y-auto no-scrollbar py-4 px-3 space-y-1">
+            <p class="px-3 text-xs font-medium text-zinc-500 uppercase tracking-widest mb-2 mt-4">Overview</p>
+            <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md bg-zinc-900/80 text-white font-medium text-sm border border-zinc-800/50">
+                <iconify-icon icon="solar:widget-5-linear" class="text-lg text-blue-500"></iconify-icon>
+                Dashboard
+            </a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 transition-colors text-sm">
+                <iconify-icon icon="solar:users-group-rounded-linear" class="text-lg"></iconify-icon>
+                Team / Reps
+            </a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 transition-colors text-sm">
+                <iconify-icon icon="solar:chart-2-linear" class="text-lg"></iconify-icon>
+                Analytics
+            </a>
+
+            <p class="px-3 text-xs font-medium text-zinc-500 uppercase tracking-widest mb-2 mt-6">Activity</p>
+            <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 transition-colors text-sm">
+                <iconify-icon icon="solar:phone-calling-linear" class="text-lg"></iconify-icon>
+                Call Logs
+            </a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 transition-colors text-sm">
+                <iconify-icon icon="solar:calendar-linear" class="text-lg"></iconify-icon>
+                Appointments
+            </a>
+            <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 transition-colors text-sm">
+                <iconify-icon icon="solar:dollar-minimalistic-linear" class="text-lg"></iconify-icon>
+                Deals Closed
+            </a>
+
+            <p class="px-3 text-xs font-medium text-zinc-500 uppercase tracking-widest mb-2 mt-6">System</p>
+            <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 transition-colors text-sm">
+                <iconify-icon icon="solar:settings-linear" class="text-lg"></iconify-icon>
+                Settings
+            </a>
+        </nav>
+
+        <!-- User profile bottom -->
+        <div class="p-4 border-t border-zinc-800/60">
+            <div class="flex items-center gap-3">
+                <img src="https://i.pravatar.cc/150?u=admin" alt="Admin" class="w-8 h-8 rounded-full border border-zinc-700">
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-white truncate">Sarah Connor</p>
+                    <p class="text-xs text-zinc-500 truncate">VP of Sales (Admin)</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 md:ml-64 flex flex-col min-h-screen relative">
+        <!-- Background Glow -->
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+
+        <!-- Topbar -->
+        <header class="h-16 flex items-center justify-between px-4 sm:px-8 border-b border-zinc-800/60 bg-black/50 backdrop-blur-md sticky top-0 z-10">
+            <div class="flex items-center gap-4">
+                <button class="md:hidden text-zinc-400 hover:text-white">
+                    <iconify-icon icon="solar:hamburger-menu-linear" class="text-2xl"></iconify-icon>
+                </button>
+                <h1 class="text-lg font-medium tracking-tight text-white hidden sm:block">Dashboard Overview</h1>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <!-- Search -->
+                <div class="hidden sm:flex items-center relative">
+                    <iconify-icon icon="solar:magnifer-linear" class="absolute left-3 text-zinc-500 text-sm"></iconify-icon>
+                    <input type="text" placeholder="Search clients, reps..." class="bg-zinc-900/50 border border-zinc-800 text-zinc-300 text-sm rounded-full pl-9 pr-4 py-1.5 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 w-64 transition-all placeholder:text-zinc-600">
+                </div>
+
+                <!-- Date Filter -->
+                <button class="flex items-center gap-2 bg-zinc-900/50 border border-zinc-800 text-zinc-300 text-sm rounded-full px-4 py-1.5 hover:bg-zinc-800 transition-colors">
+                    <iconify-icon icon="solar:calendar-date-linear" class="text-zinc-500"></iconify-icon>
+                    <span>This Month</span>
+                    <iconify-icon icon="solar:alt-arrow-down-linear" class="text-zinc-500 ml-1"></iconify-icon>
+                </button>
+
+                <!-- Notifications -->
+                <button class="relative text-zinc-400 hover:text-white transition-colors">
+                    <iconify-icon icon="solar:bell-linear" class="text-xl"></iconify-icon>
+                    <span class="absolute top-0 right-0 w-2 h-2 bg-blue-500 rounded-full border border-black"></span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <div class="flex-1 p-4 sm:p-8 overflow-y-auto">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+                <div>
+                    <h2 class="text-2xl font-medium tracking-tighter text-white">Company Performance</h2>
+                    <p class="text-sm text-zinc-400 mt-1">Overall metrics across all sales representatives.</p>
+                </div>
+                <button class="flex items-center justify-center gap-2 bg-white text-black px-4 py-2 rounded-md text-sm font-medium hover:bg-zinc-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+                    <iconify-icon icon="solar:file-download-linear"></iconify-icon>
+                    Export Report
+                </button>
+            </div>
+
+            <!-- Stat Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <!-- Card 1 -->
+                <div class="glass-card rounded-xl p-5 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-yellow-500/5 rounded-full blur-xl -mr-8 -mt-8 transition-transform group-hover:scale-150"></div>
+                    <div class="flex justify-between items-start mb-4">
+                        <p class="text-sm text-zinc-400 font-medium">Total Revenue</p>
+                        <div class="p-1.5 rounded-md bg-yellow-500/10 text-yellow-500">
+                            <iconify-icon icon="solar:wallet-money-linear"></iconify-icon>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <h3 class="text-2xl font-medium tracking-tighter text-white">$428,500</h3>
+                        <span class="text-xs font-medium text-emerald-400 flex items-center bg-emerald-400/10 px-1.5 py-0.5 rounded">
+                            <iconify-icon icon="solar:arrow-right-up-linear" class="mr-0.5"></iconify-icon> 12.5%
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="glass-card rounded-xl p-5 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-xl -mr-8 -mt-8 transition-transform group-hover:scale-150"></div>
+                    <div class="flex justify-between items-start mb-4">
+                        <p class="text-sm text-zinc-400 font-medium">Calls Made</p>
+                        <div class="p-1.5 rounded-md bg-blue-500/10 text-blue-500">
+                            <iconify-icon icon="solar:phone-calling-linear"></iconify-icon>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <h3 class="text-2xl font-medium tracking-tighter text-white">4,205</h3>
+                        <span class="text-xs font-medium text-emerald-400 flex items-center bg-emerald-400/10 px-1.5 py-0.5 rounded">
+                            <iconify-icon icon="solar:arrow-right-up-linear" class="mr-0.5"></iconify-icon> 8.2%
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="glass-card rounded-xl p-5 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full blur-xl -mr-8 -mt-8 transition-transform group-hover:scale-150"></div>
+                    <div class="flex justify-between items-start mb-4">
+                        <p class="text-sm text-zinc-400 font-medium">Appts Booked</p>
+                        <div class="p-1.5 rounded-md bg-purple-500/10 text-purple-400">
+                            <iconify-icon icon="solar:calendar-add-linear"></iconify-icon>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <h3 class="text-2xl font-medium tracking-tighter text-white">312</h3>
+                        <span class="text-xs font-medium text-zinc-400 flex items-center bg-zinc-800 px-1.5 py-0.5 rounded">
+                            <iconify-icon icon="solar:arrow-right-linear" class="mr-0.5"></iconify-icon> 0%
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="glass-card rounded-xl p-5 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl -mr-8 -mt-8 transition-transform group-hover:scale-150"></div>
+                    <div class="flex justify-between items-start mb-4">
+                        <p class="text-sm text-zinc-400 font-medium">Close Rate</p>
+                        <div class="p-1.5 rounded-md bg-emerald-500/10 text-emerald-400">
+                            <iconify-icon icon="solar:target-linear"></iconify-icon>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <h3 class="text-2xl font-medium tracking-tighter text-white">28.4%</h3>
+                        <span class="text-xs font-medium text-red-400 flex items-center bg-red-400/10 px-1.5 py-0.5 rounded">
+                            <iconify-icon icon="solar:arrow-right-down-linear" class="mr-0.5"></iconify-icon> 2.1%
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Middle Section: Chart & Quick Action -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                
+                <!-- Chart Area (Visual placeholder) -->
+                <div class="glass-card rounded-xl p-6 lg:col-span-2 flex flex-col">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-base font-medium text-white">Revenue Trend</h3>
+                        <div class="flex gap-2">
+                            <button class="text-xs px-2 py-1 rounded bg-zinc-800 text-zinc-300 hover:text-white transition-colors">Daily</button>
+                            <button class="text-xs px-2 py-1 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">Weekly</button>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-h-[200px] flex items-end justify-between gap-2 pt-4 relative border-b border-zinc-800/50 pb-2">
+                        <!-- Y-axis labels -->
+                        <div class="absolute left-0 top-0 bottom-2 flex flex-col justify-between text-[10px] text-zinc-600">
+                            <span>$100k</span>
+                            <span>$75k</span>
+                            <span>$50k</span>
+                            <span>$25k</span>
+                            <span>0</span>
+                        </div>
+                        
+                        <!-- Chart Bars -->
+                        <div class="w-full flex justify-between items-end h-full pl-8 gap-1 sm:gap-2">
+                            <div class="w-full bg-zinc-800 rounded-t-sm h-[30%] hover:bg-zinc-700 transition-all relative group">
+                                <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-black border border-zinc-800 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">$30k</div>
+                            </div>
+                            <div class="w-full bg-zinc-800 rounded-t-sm h-[45%] hover:bg-zinc-700 transition-all"></div>
+                            <div class="w-full bg-zinc-800 rounded-t-sm h-[25%] hover:bg-zinc-700 transition-all"></div>
+                            <div class="w-full bg-zinc-800 rounded-t-sm h-[60%] hover:bg-zinc-700 transition-all"></div>
+                            <div class="w-full bg-blue-500/80 rounded-t-sm h-[85%] hover:bg-blue-400 transition-all relative group shadow-[0_0_15px_rgba(59,130,246,0.3)]">
+                                <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-black border border-zinc-800 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">$85k</div>
+                            </div>
+                            <div class="w-full bg-zinc-800 rounded-t-sm h-[50%] hover:bg-zinc-700 transition-all"></div>
+                            <div class="w-full bg-zinc-800 rounded-t-sm h-[70%] hover:bg-zinc-700 transition-all"></div>
+                        </div>
+                    </div>
+                    <!-- X-axis labels -->
+                    <div class="flex justify-between pl-8 pt-2 text-[10px] text-zinc-500">
+                        <span>Mon</span>
+                        <span>Tue</span>
+                        <span>Wed</span>
+                        <span>Thu</span>
+                        <span class="text-blue-400">Fri</span>
+                        <span>Sat</span>
+                        <span>Sun</span>
+                    </div>
+                </div>
+
+                <!-- Quick Log Action (Sales Rep Functionality View) -->
+                <div class="glass-card rounded-xl p-6 flex flex-col">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-base font-medium text-white">Log Activity</h3>
+                        <iconify-icon icon="solar:pen-new-square-linear" class="text-zinc-500"></iconify-icon>
+                    </div>
+                    
+                    <form class="flex-1 flex flex-col gap-4">
+                        <!-- Custom Select -->
+                        <div>
+                            <label class="block text-xs font-medium text-zinc-400 mb-1.5">Activity Type</label>
+                            <div class="relative">
+                                <select class="w-full bg-black/50 border border-zinc-800 text-sm text-zinc-200 rounded-lg px-3 py-2.5 appearance-none focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50">
+                                    <option>Deal Closed</option>
+                                    <option>Appointment Set</option>
+                                    <option>Discovery Call</option>
+                                    <option>Follow-up</option>
+                                </select>
+                                <iconify-icon icon="solar:alt-arrow-down-linear" class="absolute right-3 top-3 text-zinc-500 pointer-events-none"></iconify-icon>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-zinc-400 mb-1.5">Client Name</label>
+                                <input type="text" placeholder="Acme Corp" class="w-full bg-black/50 border border-zinc-800 text-sm text-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 placeholder:text-zinc-600">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-zinc-400 mb-1.5">Deal Value ($)</label>
+                                <input type="text" placeholder="0.00" class="w-full bg-black/50 border border-zinc-800 text-sm text-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 placeholder:text-zinc-600">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-zinc-400 mb-1.5">Service Sold</label>
+                            <input type="text" placeholder="Enterprise SaaS License" class="w-full bg-black/50 border border-zinc-800 text-sm text-zinc-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 placeholder:text-zinc-600">
+                        </div>
+
+                        <!-- Custom Toggle -->
+                        <div class="flex items-center justify-between mt-2">
+                            <span class="text-xs text-zinc-400">Mark as priority</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" value="" class="sr-only peer">
+                                <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
+                            </label>
+                        </div>
+
+                        <button type="button" class="mt-auto w-full bg-white text-black font-medium text-sm py-2.5 rounded-lg hover:bg-zinc-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+                            Log Deal
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Bottom Section: Leaderboard & Table -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Leaderboard (Admin View) -->
+                <div class="glass-card rounded-xl flex flex-col overflow-hidden">
+                    <div class="p-5 border-b border-zinc-800/60 flex justify-between items-center bg-zinc-900/20">
+                        <h3 class="text-base font-medium text-white flex items-center gap-2">
+                            <iconify-icon icon="solar:cup-star-linear" class="text-yellow-500"></iconify-icon>
+                            Rep Leaderboard
+                        </h3>
+                        <span class="text-xs text-zinc-500">By Revenue</span>
+                    </div>
+                    
+                    <div class="flex-1 overflow-y-auto no-scrollbar p-2">
+                        <!-- Rep 1 -->
+                        <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-zinc-800/30 transition-colors cursor-pointer group">
+                            <div class="w-6 text-center text-sm font-medium text-yellow-500">1</div>
+                            <img src="https://i.pravatar.cc/150?u=a1" class="w-8 h-8 rounded-full border border-zinc-700" alt="Avatar">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-zinc-200 truncate group-hover:text-white transition-colors">Marcus Johnson</p>
+                                <div class="w-full bg-zinc-800 rounded-full h-1.5 mt-1.5">
+                                    <div class="bg-yellow-500 h-1.5 rounded-full" style="width: 100%"></div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-medium text-white">$142k</p>
+                                <p class="text-[10px] text-zinc-500">24 deals</p>
+                            </div>
+                        </div>
+
+                        <!-- Rep 2 -->
+                        <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-zinc-800/30 transition-colors cursor-pointer group">
+                            <div class="w-6 text-center text-sm font-medium text-zinc-400">2</div>
+                            <img src="https://i.pravatar.cc/150?u=a2" class="w-8 h-8 rounded-full border border-zinc-700" alt="Avatar">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-zinc-200 truncate group-hover:text-white transition-colors">Emily Davis</p>
+                                <div class="w-full bg-zinc-800 rounded-full h-1.5 mt-1.5">
+                                    <div class="bg-zinc-400 h-1.5 rounded-full" style="width: 85%"></div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-medium text-white">$98k</p>
+                                <p class="text-[10px] text-zinc-500">18 deals</p>
+                            </div>
+                        </div>
+
+                        <!-- Rep 3 -->
+                        <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-zinc-800/30 transition-colors cursor-pointer group">
+                            <div class="w-6 text-center text-sm font-medium text-amber-700">3</div>
+                            <div class="w-8 h-8 rounded-full border border-zinc-700 bg-zinc-800 flex items-center justify-center text-xs font-medium text-zinc-300">TJ</div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-zinc-200 truncate group-hover:text-white transition-colors">Tyler Jones</p>
+                                <div class="w-full bg-zinc-800 rounded-full h-1.5 mt-1.5">
+                                    <div class="bg-zinc-500 h-1.5 rounded-full" style="width: 65%"></div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-medium text-white">$74k</p>
+                                <p class="text-[10px] text-zinc-500">15 deals</p>
+                            </div>
+                        </div>
+
+                         <!-- Rep 4 -->
+                         <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-zinc-800/30 transition-colors cursor-pointer group">
+                            <div class="w-6 text-center text-sm font-medium text-zinc-600">4</div>
+                            <img src="https://i.pravatar.cc/150?u=a4" class="w-8 h-8 rounded-full border border-zinc-700" alt="Avatar">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-zinc-200 truncate group-hover:text-white transition-colors">Sarah Connor</p>
+                                <div class="w-full bg-zinc-800 rounded-full h-1.5 mt-1.5">
+                                    <div class="bg-zinc-600 h-1.5 rounded-full" style="width: 45%"></div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-medium text-white">$42k</p>
+                                <p class="text-[10px] text-zinc-500">8 deals</p>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="#" class="p-3 text-center text-xs font-medium text-blue-400 hover:text-blue-300 border-t border-zinc-800/60 bg-zinc-900/10 transition-colors">
+                        View Full Team Report
+                    </a>
+                </div>
+
+                <!-- Recent Activity Table -->
+                <div class="glass-card rounded-xl lg:col-span-2 overflow-hidden flex flex-col">
+                    <div class="p-5 border-b border-zinc-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-900/20">
+                        <h3 class="text-base font-medium text-white">Recent Deals &amp; Activity</h3>
+                        <div class="flex items-center gap-2">
+                            <div class="relative">
+                                <select class="bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 rounded px-2.5 py-1.5 appearance-none pr-7 focus:outline-none">
+                                    <option>All Statuses</option>
+                                    <option>Closed Won</option>
+                                    <option>Pending</option>
+                                </select>
+                                <iconify-icon icon="solar:alt-arrow-down-linear" class="absolute right-2 top-2 text-zinc-500 text-xs pointer-events-none"></iconify-icon>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-zinc-800/60 bg-zinc-900/10">
+                                    <th class="px-5 py-3 text-[10px] font-medium text-zinc-500 uppercase tracking-widest whitespace-nowrap">Client</th>
+                                    <th class="px-5 py-3 text-[10px] font-medium text-zinc-500 uppercase tracking-widest whitespace-nowrap">Service</th>
+                                    <th class="px-5 py-3 text-[10px] font-medium text-zinc-500 uppercase tracking-widest whitespace-nowrap">Amount</th>
+                                    <th class="px-5 py-3 text-[10px] font-medium text-zinc-500 uppercase tracking-widest whitespace-nowrap">Status</th>
+                                    <th class="px-5 py-3 text-[10px] font-medium text-zinc-500 uppercase tracking-widest whitespace-nowrap">Rep</th>
+                                    <th class="px-5 py-3 text-[10px] font-medium text-zinc-500 uppercase tracking-widest whitespace-nowrap text-right">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-zinc-800/40">
+                                <tr class="hover:bg-zinc-900/30 transition-colors">
+                                    <td class="px-5 py-3.5">
+                                        <p class="text-sm font-medium text-zinc-200">Stark Industries</p>
+                                        <p class="text-xs text-zinc-500">t.stark@example.com</p>
+                                    </td>
+                                    <td class="px-5 py-3.5 text-sm text-zinc-400">Enterprise Plan</td>
+                                    <td class="px-5 py-3.5 text-sm font-medium text-white">$24,000</td>
+                                    <td class="px-5 py-3.5">
+                                        <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Closed Won
+                                        </span>
+                                    </td>
+                                    <td class="px-5 py-3.5">
+                                        <div class="flex items-center gap-2">
+                                            <img src="https://i.pravatar.cc/150?u=a1" class="w-5 h-5 rounded-full" alt="M">
+                                            <span class="text-xs text-zinc-300">Marcus J.</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-5 py-3.5 text-xs text-zinc-500 text-right whitespace-nowrap">Today, 2:45 PM</td>
+                                </tr>
+
+                                <tr class="hover:bg-zinc-900/30 transition-colors">
+                                    <td class="px-5 py-3.5">
+                                        <p class="text-sm font-medium text-zinc-200">Wayne Enterprises</p>
+                                        <p class="text-xs text-zinc-500">b.wayne@example.com</p>
+                                    </td>
+                                    <td class="px-5 py-3.5 text-sm text-zinc-400">Custom Integration</td>
+                                    <td class="px-5 py-3.5 text-sm font-medium text-white">$18,500</td>
+                                    <td class="px-5 py-3.5">
+                                        <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Negotiation
+                                        </span>
+                                    </td>
+                                    <td class="px-5 py-3.5">
+                                        <div class="flex items-center gap-2">
+                                            <img src="https://i.pravatar.cc/150?u=a2" class="w-5 h-5 rounded-full" alt="E">
+                                            <span class="text-xs text-zinc-300">Emily D.</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-5 py-3.5 text-xs text-zinc-500 text-right whitespace-nowrap">Today, 11:20 AM</td>
+                                </tr>
+
+                                <tr class="hover:bg-zinc-900/30 transition-colors">
+                                    <td class="px-5 py-3.5">
+                                        <p class="text-sm font-medium text-zinc-200">Daily Planet</p>
+                                        <p class="text-xs text-zinc-500">c.kent@example.com</p>
+                                    </td>
+                                    <td class="px-5 py-3.5 text-sm text-zinc-400">Pro Plan (Annual)</td>
+                                    <td class="px-5 py-3.5 text-sm font-medium text-white">$5,900</td>
+                                    <td class="px-5 py-3.5">
+                                        <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-medium bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-zinc-500"></span> Discovery Call
+                                        </span>
+                                    </td>
+                                    <td class="px-5 py-3.5">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-5 h-5 rounded-full bg-zinc-800 flex items-center justify-center text-[10px]">TJ</div>
+                                            <span class="text-xs text-zinc-300">Tyler J.</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-5 py-3.5 text-xs text-zinc-500 text-right whitespace-nowrap">Yesterday</td>
+                                </tr>
+                                
+                                <tr class="hover:bg-zinc-900/30 transition-colors">
+                                    <td class="px-5 py-3.5">
+                                        <p class="text-sm font-medium text-zinc-200">Oscorp</p>
+                                        <p class="text-xs text-zinc-500">n.osborn@example.com</p>
+                                    </td>
+                                    <td class="px-5 py-3.5 text-sm text-zinc-400">Enterprise Plan</td>
+                                    <td class="px-5 py-3.5 text-sm font-medium text-white">$32,000</td>
+                                    <td class="px-5 py-3.5">
+                                        <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-medium bg-red-500/10 text-red-400 border border-red-500/20">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Closed Lost
+                                        </span>
+                                    </td>
+                                    <td class="px-5 py-3.5">
+                                        <div class="flex items-center gap-2">
+                                            <img src="https://i.pravatar.cc/150?u=a1" class="w-5 h-5 rounded-full" alt="M">
+                                            <span class="text-xs text-zinc-300">Marcus J.</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-5 py-3.5 text-xs text-zinc-500 text-right whitespace-nowrap">Oct 24, 2023</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                     <div class="p-3 border-t border-zinc-800/60 bg-zinc-900/10 flex justify-center">
+                        <button class="text-xs font-medium text-zinc-400 hover:text-white transition-colors flex items-center gap-1">
+                            Load More <iconify-icon icon="solar:alt-arrow-down-linear"></iconify-icon>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+
+</body></html>
