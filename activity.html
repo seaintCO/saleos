@@ -1,30 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
+<title>Activity</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
-<body style="background:black;color:white">
+<body class="bg-black text-white p-6">
 
-<h1>Activity</h1>
-<button onclick="back()">Back</button>
+<h1>Activity Page</h1>
+<button onclick="logout()">Logout</button>
 
-<div id="data"></div>
+<script src="app.js"></script>
 
 <script>
-const supabase = window.supabase.createClient(
-"https://qagfyyqfzhczoyhuihiv.supabase.co",
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-);
-
-async function load(){
-const { data } = await supabase.from("activities").select("*");
-dataDiv.innerHTML = JSON.stringify(data);
+async function init(){
+  const user = await getUser();
+  if(!user){
+    alert("Login first");
+  }
 }
-
-function back(){ location.href="dashboard.html"; }
-
-load();
+init();
 </script>
 
 </body>
