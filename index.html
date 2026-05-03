@@ -1,461 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SalesOS Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <title>SalesOS Login</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Inter', sans-serif; background:#000; }
-    ::-webkit-scrollbar { width:6px;height:6px; }
-    ::-webkit-scrollbar-track { background:transparent; }
-    ::-webkit-scrollbar-thumb { background:#27272a;border-radius:10px; }
-    .glass-card {
-      background: rgba(24,24,27,.45);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border:1px solid rgba(63,63,70,.45);
-    }
-    .hidden-screen { display:none !important; }
-  </style>
 </head>
-<body class="text-zinc-100 antialiased min-h-screen selection:bg-blue-500/30 selection:text-white">
 
-  <!-- LOGIN SCREEN -->
-  <section id="authScreen" class="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
-    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-blue-600/20 rounded-full blur-[140px] pointer-events-none"></div>
-    <div class="glass-card w-full max-w-md rounded-2xl p-8 relative z-10">
-      <div class="flex items-center gap-3 mb-8">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 to-blue-400 flex items-center justify-center">
-          <iconify-icon icon="solar:chart-square-linear" class="text-white text-xl"></iconify-icon>
-        </div>
-        <div>
-          <h1 class="text-2xl font-semibold tracking-tight">SALESOS</h1>
-          <p class="text-sm text-zinc-400">Rep + Growth Operator Dashboard</p>
-        </div>
-      </div>
+<body style="background:black;color:white;font-family:sans-serif;text-align:center;padding-top:100px;">
 
-      <div class="space-y-4">
-        <div>
-          <label class="text-xs text-zinc-400">Email</label>
-          <input id="authEmail" type="email" placeholder="rep@company.com" class="mt-1 w-full bg-black/60 border border-zinc-800 rounded-lg px-3 py-3 text-sm outline-none focus:border-blue-500">
-        </div>
-        <div>
-          <label class="text-xs text-zinc-400">Password</label>
-          <input id="authPassword" type="password" placeholder="••••••••" class="mt-1 w-full bg-black/60 border border-zinc-800 rounded-lg px-3 py-3 text-sm outline-none focus:border-blue-500">
-        </div>
-        <div>
-          <label class="text-xs text-zinc-400">Your Name</label>
-          <input id="authName" type="text" placeholder="Luis / Rep Name" class="mt-1 w-full bg-black/60 border border-zinc-800 rounded-lg px-3 py-3 text-sm outline-none focus:border-blue-500">
-        </div>
+<h1>SalesOS</h1>
 
-        <button onclick="signIn()" class="w-full bg-white text-black py-3 rounded-lg font-semibold hover:bg-zinc-200 transition">Login</button>
-        <button onclick="signUp()" class="w-full bg-zinc-900 border border-zinc-800 text-white py-3 rounded-lg font-semibold hover:bg-zinc-800 transition">Create Rep Account</button>
+<input id="email" placeholder="Email"><br><br>
+<input id="password" type="password" placeholder="Password"><br><br>
 
-        <p id="authMessage" class="text-sm text-zinc-400 min-h-[20px]"></p>
-      </div>
-    </div>
-  </section>
-
-  <!-- APP SCREEN -->
-  <section id="appScreen" class="hidden-screen min-h-screen flex">
-    <aside class="hidden md:flex flex-col w-64 fixed inset-y-0 left-0 bg-black border-r border-zinc-800/60 z-20">
-      <div class="h-16 flex items-center px-6 border-b border-zinc-800/60">
-        <span class="text-lg font-semibold tracking-tighter text-white flex items-center gap-2">
-          <div class="w-6 h-6 rounded bg-gradient-to-tr from-blue-600 to-blue-400 flex items-center justify-center">
-            <iconify-icon icon="solar:chart-square-linear" class="text-white text-sm"></iconify-icon>
-          </div>
-          SALESOS
-        </span>
-      </div>
-
-      <nav class="flex-1 py-4 px-3 space-y-1">
-        <p class="px-3 text-xs font-medium text-zinc-500 uppercase tracking-widest mb-2 mt-4">Overview</p>
-        <button onclick="setView('dashboard')" class="navBtn w-full flex items-center gap-3 px-3 py-2 rounded-md bg-zinc-900/80 text-white font-medium text-sm border border-zinc-800/50">
-          <iconify-icon icon="solar:widget-5-linear" class="text-lg text-blue-500"></iconify-icon> Dashboard
-        </button>
-        <button onclick="setView('team')" class="navBtn w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
-          <iconify-icon icon="solar:users-group-rounded-linear" class="text-lg"></iconify-icon> Team / Reps
-        </button>
-        <button onclick="setView('activities')" class="navBtn w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
-          <iconify-icon icon="solar:phone-calling-linear" class="text-lg"></iconify-icon> Activity Logs
-        </button>
-      </nav>
-
-      <div class="p-4 border-t border-zinc-800/60">
-        <p id="sidebarName" class="text-sm font-medium text-white truncate">Loading...</p>
-        <p id="sidebarEmail" class="text-xs text-zinc-500 truncate">User</p>
-        <button onclick="signOut()" class="mt-3 w-full text-xs bg-zinc-900 border border-zinc-800 rounded-lg py-2 hover:bg-zinc-800">Logout</button>
-      </div>
-    </aside>
-
-    <main class="flex-1 md:ml-64 flex flex-col min-h-screen relative">
-      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none -z-10"></div>
-
-      <header class="h-16 flex items-center justify-between px-4 sm:px-8 border-b border-zinc-800/60 bg-black/50 backdrop-blur-md sticky top-0 z-10">
-        <div>
-          <h1 class="text-lg font-semibold tracking-tight text-white">SalesOS Dashboard</h1>
-          <p class="text-xs text-zinc-500">Live CRM tracking powered by Supabase</p>
-        </div>
-        <div class="flex gap-2">
-          <button onclick="exportCSV()" class="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-md text-sm font-semibold hover:bg-zinc-200">
-            <iconify-icon icon="solar:file-download-linear"></iconify-icon> Export CSV
-          </button>
-        </div>
-      </header>
-
-      <div class="flex-1 p-4 sm:p-8 overflow-y-auto">
-        <!-- Stats -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div class="glass-card rounded-xl p-5">
-            <p class="text-sm text-zinc-400">Total Revenue</p>
-            <h3 id="totalRevenue" class="text-3xl font-semibold tracking-tighter mt-3">$0</h3>
-          </div>
-          <div class="glass-card rounded-xl p-5">
-            <p class="text-sm text-zinc-400">Calls / Follow-ups</p>
-            <h3 id="totalCalls" class="text-3xl font-semibold tracking-tighter mt-3">0</h3>
-          </div>
-          <div class="glass-card rounded-xl p-5">
-            <p class="text-sm text-zinc-400">Appointments</p>
-            <h3 id="totalAppts" class="text-3xl font-semibold tracking-tighter mt-3">0</h3>
-          </div>
-          <div class="glass-card rounded-xl p-5">
-            <p class="text-sm text-zinc-400">Deals Closed</p>
-            <h3 id="totalDeals" class="text-3xl font-semibold tracking-tighter mt-3">0</h3>
-          </div>
-        </div>
-
-        <!-- Main Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          <div class="glass-card rounded-xl p-6 lg:col-span-2">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-base font-semibold text-white">Recent Activity</h3>
-              <input id="searchInput" oninput="renderActivities()" placeholder="Search client, service, rep..." class="bg-black/50 border border-zinc-800 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 w-full max-w-xs">
-            </div>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left">
-                <thead>
-                  <tr class="border-b border-zinc-800/60">
-                    <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Client</th>
-                    <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Activity</th>
-                    <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Amount</th>
-                    <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Rep</th>
-                    <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Date</th>
-                    <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase"></th>
-                  </tr>
-                </thead>
-                <tbody id="activityTable" class="divide-y divide-zinc-800/40"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="glass-card rounded-xl p-6">
-            <h3 class="text-base font-semibold text-white mb-6">Log Activity</h3>
-            <form onsubmit="logActivity(event)" class="space-y-4">
-              <div>
-                <label class="block text-xs text-zinc-400 mb-1">Activity Type</label>
-                <select id="activityType" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
-                  <option>Deal Closed</option>
-                  <option>Appointment Set</option>
-                  <option>Discovery Call</option>
-                  <option>Follow-up</option>
-                  <option>Cold Call</option>
-                  <option>Closed Lost</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs text-zinc-400 mb-1">Client Name</label>
-                <input id="clientName" required placeholder="Business / Client" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
-              </div>
-              <div>
-                <label class="block text-xs text-zinc-400 mb-1">Deal Value</label>
-                <input id="dealValue" type="number" value="0" min="0" step="0.01" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
-              </div>
-              <div>
-                <label class="block text-xs text-zinc-400 mb-1">Service Sold / Offer</label>
-                <input id="serviceSold" placeholder="Website + AI Agent" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
-              </div>
-              <div>
-                <label class="block text-xs text-zinc-400 mb-1">Notes</label>
-                <textarea id="notes" rows="3" placeholder="What happened?" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500"></textarea>
-              </div>
-              <button class="w-full bg-white text-black font-semibold text-sm py-3 rounded-lg hover:bg-zinc-200">Save Activity</button>
-              <p id="saveMessage" class="text-xs text-zinc-400"></p>
-            </form>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div class="glass-card rounded-xl p-6">
-            <h3 class="text-base font-semibold text-white mb-4">Rep Leaderboard</h3>
-            <div id="leaderboard" class="space-y-3"></div>
-          </div>
-
-          <div class="glass-card rounded-xl p-6 lg:col-span-2">
-            <h3 class="text-base font-semibold text-white mb-4">Team / Operator Tracking</h3>
-            <div id="teamList" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
-          </div>
-        </div>
-      </div>
-    </main>
-  </section>
+<button onclick="signup()">Create Account</button>
+<button onclick="login()">Login</button>
 
 <script>
-const SUPABASE_URL = "https://qagfyyqfzhczoyhuihiv.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhZ2Z5eXFmemhjem95aHVpaGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mjc1MDIsImV4cCI6MjA5MzQwMzUwMn0.Idn8QeB0RKhgB2FB9jft7Gtp164S7aeSy3hRYSOMFVE";
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = window.supabase.createClient(
+  "https://qagfyyqfzhczoyhuihiv.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhZ2Z5eXFmemhjem95aHVpaGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mjc1MDIsImV4cCI6MjA5MzQwMzUwMn0.Idn8QeB0RKhgB2FB9jft7Gtp164S7aeSy3hRYSOMFVE"
+);
 
-let currentUser = null;
-let activities = [];
+async function signup(){
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-function money(n) {
-  return new Intl.NumberFormat("en-US", { style:"currency", currency:"USD", maximumFractionDigits:0 }).format(Number(n || 0));
+  await supabase.auth.signUp({ email, password });
+  alert("Check your email");
 }
 
-function setMessage(id, msg) {
-  document.getElementById(id).innerText = msg;
-}
+async function login(){
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-async function signUp() {
-  const email = document.getElementById("authEmail").value.trim();
-  const password = document.getElementById("authPassword").value.trim();
-  const name = document.getElementById("authName").value.trim();
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-  if (!email || !password || !name) return setMessage("authMessage", "Add email, password, and name.");
-
-  const { data, error } = await supabaseClient.auth.signUp({
-    email,
-    password,
-    options: { data: { full_name: name } }
-  });
-
-  if (error) return setMessage("authMessage", error.message);
-
-  setMessage("authMessage", "Account created. Check email if confirmation is on, then login.");
-}
-
-async function signIn() {
-  const email = document.getElementById("authEmail").value.trim();
-  const password = document.getElementById("authPassword").value.trim();
-
-  if (!email || !password) return setMessage("authMessage", "Add email and password.");
-
-  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-  if (error) return setMessage("authMessage", error.message);
-
-  currentUser = data.user;
-  showApp();
-}
-
-async function signOut() {
-  await supabaseClient.auth.signOut();
-  currentUser = null;
-  activities = [];
-  document.getElementById("appScreen").classList.add("hidden-screen");
-  document.getElementById("authScreen").classList.remove("hidden-screen");
-}
-
-async function checkSession() {
-  const { data } = await supabaseClient.auth.getSession();
-  if (data.session?.user) {
-    currentUser = data.session.user;
-    showApp();
-  }
-}
-
-async function showApp() {
-  document.getElementById("authScreen").classList.add("hidden-screen");
-  document.getElementById("appScreen").classList.remove("hidden-screen");
-
-  const name = currentUser.user_metadata?.full_name || currentUser.email;
-  document.getElementById("sidebarName").innerText = name;
-  document.getElementById("sidebarEmail").innerText = currentUser.email;
-
-  await loadActivities();
-}
-
-async function loadActivities() {
-  const { data, error } = await supabaseClient
-    .from("activities")
-    .select("*")
-    .order("created_at", { ascending:false });
-
-  if (error) {
-    alert("Database load error: " + error.message);
-    console.error(error);
+  if(error){
+    alert(error.message);
     return;
   }
 
-  activities = data || [];
-  renderDashboard();
+  window.location.href = "dashboard.html";
 }
-
-async function logActivity(e) {
-  e.preventDefault();
-
-  const name = currentUser.user_metadata?.full_name || currentUser.email;
-  const activity_type = document.getElementById("activityType").value;
-  const client_name = document.getElementById("clientName").value.trim();
-  const deal_value = Number(document.getElementById("dealValue").value || 0);
-  const service_sold = document.getElementById("serviceSold").value.trim();
-  const notes = document.getElementById("notes").value.trim();
-
-  const { error } = await supabaseClient.from("activities").insert([{
-    user_id: currentUser.id,
-    rep_name: name,
-    activity_type,
-    client_name,
-    deal_value,
-    service_sold,
-    status: activity_type,
-    notes
-  }]);
-
-  if (error) {
-    setMessage("saveMessage", "Error: " + error.message);
-    console.error(error);
-    return;
-  }
-
-  setMessage("saveMessage", "Saved.");
-  document.getElementById("clientName").value = "";
-  document.getElementById("dealValue").value = "0";
-  document.getElementById("serviceSold").value = "";
-  document.getElementById("notes").value = "";
-
-  await loadActivities();
-}
-
-async function deleteActivity(id) {
-  if (!confirm("Delete this activity?")) return;
-
-  const { error } = await supabaseClient.from("activities").delete().eq("id", id);
-  if (error) return alert("Delete error: " + error.message);
-
-  await loadActivities();
-}
-
-function renderDashboard() {
-  const revenue = activities
-    .filter(a => a.activity_type === "Deal Closed")
-    .reduce((sum, a) => sum + Number(a.deal_value || 0), 0);
-
-  const calls = activities.filter(a => ["Cold Call","Follow-up","Discovery Call"].includes(a.activity_type)).length;
-  const appts = activities.filter(a => a.activity_type === "Appointment Set").length;
-  const deals = activities.filter(a => a.activity_type === "Deal Closed").length;
-
-  document.getElementById("totalRevenue").innerText = money(revenue);
-  document.getElementById("totalCalls").innerText = calls;
-  document.getElementById("totalAppts").innerText = appts;
-  document.getElementById("totalDeals").innerText = deals;
-
-  renderActivities();
-  renderLeaderboard();
-  renderTeam();
-}
-
-function renderActivities() {
-  const q = (document.getElementById("searchInput")?.value || "").toLowerCase();
-
-  const filtered = activities.filter(a =>
-    (a.client_name || "").toLowerCase().includes(q) ||
-    (a.service_sold || "").toLowerCase().includes(q) ||
-    (a.rep_name || "").toLowerCase().includes(q) ||
-    (a.activity_type || "").toLowerCase().includes(q)
-  );
-
-  const tbody = document.getElementById("activityTable");
-  tbody.innerHTML = filtered.map(a => `
-    <tr class="hover:bg-zinc-900/40">
-      <td class="px-3 py-3">
-        <p class="text-sm font-medium text-zinc-200">${escapeHtml(a.client_name || "No client")}</p>
-        <p class="text-xs text-zinc-500">${escapeHtml(a.service_sold || "")}</p>
-      </td>
-      <td class="px-3 py-3 text-sm text-zinc-300">${escapeHtml(a.activity_type || "")}</td>
-      <td class="px-3 py-3 text-sm text-white font-medium">${money(a.deal_value)}</td>
-      <td class="px-3 py-3 text-sm text-zinc-400">${escapeHtml(a.rep_name || "")}</td>
-      <td class="px-3 py-3 text-xs text-zinc-500">${new Date(a.created_at).toLocaleString()}</td>
-      <td class="px-3 py-3 text-right">
-        <button onclick="deleteActivity('${a.id}')" class="text-red-400 hover:text-red-300 text-xs">Delete</button>
-      </td>
-    </tr>
-  `).join("");
-}
-
-function renderLeaderboard() {
-  const map = {};
-
-  activities.forEach(a => {
-    const rep = a.rep_name || "Unknown";
-    if (!map[rep]) map[rep] = { revenue:0, deals:0, appts:0, actions:0 };
-    map[rep].actions++;
-    if (a.activity_type === "Deal Closed") {
-      map[rep].revenue += Number(a.deal_value || 0);
-      map[rep].deals++;
-    }
-    if (a.activity_type === "Appointment Set") map[rep].appts++;
-  });
-
-  const sorted = Object.entries(map).sort((a,b) => b[1].revenue - a[1].revenue);
-
-  document.getElementById("leaderboard").innerHTML = sorted.length ? sorted.map(([rep, stats], i) => `
-    <div class="flex items-center gap-3 p-3 rounded-lg bg-black/30 border border-zinc-800/50">
-      <div class="w-7 h-7 rounded-full bg-zinc-900 flex items-center justify-center text-xs">${i+1}</div>
-      <div class="flex-1">
-        <p class="text-sm font-medium">${escapeHtml(rep)}</p>
-        <p class="text-xs text-zinc-500">${stats.deals} deals • ${stats.appts} appts • ${stats.actions} actions</p>
-      </div>
-      <p class="text-sm font-semibold">${money(stats.revenue)}</p>
-    </div>
-  `).join("") : `<p class="text-sm text-zinc-500">No rep activity yet.</p>`;
-}
-
-function renderTeam() {
-  const map = {};
-
-  activities.forEach(a => {
-    const rep = a.rep_name || "Unknown";
-    if (!map[rep]) map[rep] = { actions:0, last:null };
-    map[rep].actions++;
-    map[rep].last = a.created_at;
-  });
-
-  const rows = Object.entries(map);
-
-  document.getElementById("teamList").innerHTML = rows.length ? rows.map(([rep, stats]) => `
-    <div class="p-4 rounded-xl bg-black/30 border border-zinc-800/50">
-      <p class="font-medium">${escapeHtml(rep)}</p>
-      <p class="text-sm text-zinc-500">${stats.actions} logged activities</p>
-      <p class="text-xs text-zinc-600 mt-2">Last activity: ${new Date(stats.last).toLocaleString()}</p>
-    </div>
-  `).join("") : `<p class="text-sm text-zinc-500">No team data yet.</p>`;
-}
-
-function exportCSV() {
-  const headers = ["created_at","rep_name","activity_type","client_name","deal_value","service_sold","status","notes"];
-  const rows = activities.map(a => headers.map(h => `"${String(a[h] ?? "").replaceAll('"','""')}"`).join(","));
-  const csv = [headers.join(","), ...rows].join("\n");
-  const blob = new Blob([csv], { type:"text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "salesos-activity.csv";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function setView(view) {
-  alert(view === "dashboard" ? "You are already on Dashboard." : "This section is tracked on this MVP screen. Full page routing can be added later.");
-}
-
-function escapeHtml(str) {
-  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-}
-
-checkSession();
 </script>
+
 </body>
 </html>
