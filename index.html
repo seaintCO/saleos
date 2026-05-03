@@ -1,125 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SalesOS Dashboard</title>
-
+<title>SalesOS</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-<style>
-body { font-family: 'Inter', sans-serif; background:#000; }
-.glass-card {
-  background: rgba(24,24,27,.45);
-  backdrop-filter: blur(12px);
-  border:1px solid rgba(63,63,70,.45);
-}
-.hidden-screen { display:none !important; }
-</style>
 </head>
 
-<body class="text-zinc-100">
+<body class="bg-black flex items-center justify-center h-screen text-white">
 
-<!-- LOGIN -->
-<section id="authScreen" class="min-h-screen flex items-center justify-center">
-  <div class="glass-card p-8 rounded-xl w-96">
-    <h1 class="text-xl mb-6">SALESOS</h1>
+<div class="p-8 bg-zinc-900 rounded w-80">
+<h1 class="mb-4 text-xl">SalesOS</h1>
 
-    <input id="authEmail" placeholder="Email" class="w-full mb-3 p-2 text-black">
-    <input id="authPassword" type="password" placeholder="Password" class="w-full mb-4 p-2 text-black">
-    <input id="authName" placeholder="Name" class="w-full mb-4 p-2 text-black">
+<input id="email" placeholder="Email" class="w-full mb-2 p-2 text-black">
+<input id="password" type="password" placeholder="Password" class="w-full mb-2 p-2 text-black">
 
-    <button onclick="signIn()" class="w-full bg-white text-black py-2 mb-2">Login</button>
-    <button onclick="signUp()" class="w-full bg-zinc-800 py-2">Create Account</button>
+<button onclick="login(email.value,password.value)" class="w-full bg-white text-black py-2 mb-2">Login</button>
+<button onclick="signup(email.value,password.value)" class="w-full bg-zinc-700 py-2">Create Account</button>
 
-    <p id="authMessage" class="text-sm mt-2"></p>
-  </div>
-</section>
+</div>
 
-<!-- APP -->
-<section id="appScreen" class="hidden-screen p-6">
-<h1 class="text-2xl mb-4">SalesOS Dashboard</h1>
-<button onclick="signOut()" class="text-red-400 mb-4">Logout</button>
-
-<div id="data"></div>
-</section>
-
-<script>
-const supabaseClient = supabase.createClient(
-  "https://qagfyyqfzhczoyhuihiv.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhZ2Z5eXFmemhjem95aHVpaGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mjc1MDIsImV4cCI6MjA5MzQwMzUwMn0.Idn8QeB0RKhgB2FB9jft7Gtp164S7aeSy3hRYSOMFVE"
-);
-
-let currentUser;
-
-/* SIGN UP */
-async function signUp(){
-  const email = authEmail.value;
-  const password = authPassword.value;
-  const name = authName.value;
-
-  const { error } = await supabaseClient.auth.signUp({
-    email,
-    password,
-    options:{ data:{ full_name:name }}
-  });
-
-  if(error){
-    authMessage.innerText = error.message;
-  } else {
-    authMessage.innerText = "Account created. Now login.";
-  }
-}
-
-/* LOGIN */
-async function signIn(){
-  const email = authEmail.value;
-  const password = authPassword.value;
-
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email,
-    password
-  });
-
-  if(error){
-    authMessage.innerText = error.message;
-    return;
-  }
-
-  currentUser = data.user;
-  showApp();
-}
-
-/* SHOW APP */
-function showApp(){
-  authScreen.classList.add("hidden-screen");
-  appScreen.classList.remove("hidden-screen");
-
-  data.innerHTML = "Logged in as: " + currentUser.email;
-}
-
-/* LOGOUT */
-async function signOut(){
-  await supabaseClient.auth.signOut();
-  location.reload();
-}
-
-/* SESSION CHECK */
-async function checkSession(){
-  const { data } = await supabaseClient.auth.getSession();
-
-  if(data.session){
-    currentUser = data.session.user;
-    showApp();
-  }
-}
-
-checkSession();
-</script>
+<script src="app.js"></script>
 
 </body>
 </html>
