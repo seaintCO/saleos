@@ -2,44 +2,45 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>SalesOS Dashboard</title>
+<title>SalesOS Elite</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<style>
+body { background:black; color:white; font-family:Inter; }
+.card { background:#111; padding:20px; border-radius:12px; }
+</style>
+
 </head>
 
-<body class="bg-black text-zinc-100 font-sans">
+<body class="p-6">
 
-<div class="flex">
+<h1 class="text-3xl mb-6">SalesOS Elite Dashboard</h1>
 
-<!-- SIDEBAR -->
-<div class="w-64 bg-black border-r border-zinc-800 p-4">
-<h1 class="text-xl mb-6">SalesOS</h1>
+<div class="flex gap-6">
 
-<button onclick="go('dashboard.html')" class="block mb-2">Dashboard</button>
-<button onclick="go('team.html')" class="block mb-2">Team</button>
-<button onclick="go('activity.html')" class="block mb-2">Activity</button>
-<button onclick="go('settings.html')" class="block mb-2">Settings</button>
+<!-- LEFT -->
+<div class="w-64">
+<button onclick="logout()" class="mb-4 text-red-400">Logout</button>
 
-<button onclick="logout()" class="mt-6 text-red-400">Logout</button>
+<div class="card mb-4">
+<h2>Stats</h2>
+<p>Revenue: <span id="rev">0</span></p>
+<p>Deals: <span id="deals">0</span></p>
 </div>
 
-<!-- MAIN -->
-<div class="flex-1 p-6">
-
-<h1 class="text-2xl mb-6">Dashboard</h1>
-
-<!-- STATS -->
-<div class="grid grid-cols-4 gap-4 mb-8">
-<div class="bg-zinc-900 p-4 rounded">Revenue: <span id="rev">0</span></div>
-<div class="bg-zinc-900 p-4 rounded">Deals: <span id="deals">0</span></div>
-<div class="bg-zinc-900 p-4 rounded">Calls: <span id="calls">0</span></div>
-<div class="bg-zinc-900 p-4 rounded">Appointments: <span id="apps">0</span></div>
+<div class="card">
+<h2>Leaderboard</h2>
+<div id="leaderboard"></div>
 </div>
 
-<!-- LOG FORM -->
-<div class="bg-zinc-900 p-4 rounded mb-6">
+</div>
+
+<!-- RIGHT -->
+<div class="flex-1">
+
+<div class="card mb-6">
 <h2 class="mb-4">Log Activity</h2>
 
 <select id="type" class="text-black mb-2">
@@ -55,20 +56,23 @@
 <button onclick="log()" class="bg-white text-black px-3 py-1">Save</button>
 </div>
 
-<!-- TABLE -->
-<table class="w-full text-left">
+<div class="card">
+<h2 class="mb-4">Recent Activity</h2>
+
+<table class="w-full">
 <thead>
 <tr>
 <th>Client</th>
 <th>Service</th>
 <th>Amount</th>
-<th>Type</th>
 <th>Rep</th>
 </tr>
 </thead>
 
 <tbody id="table"></tbody>
 </table>
+
+</div>
 
 </div>
 </div>
@@ -114,16 +118,19 @@ const table = document.getElementById("table");
 table.innerHTML="";
 
 let revenue=0;
+let leaderboard={};
 
 data.forEach(d=>{
 revenue += Number(d.deal_value||0);
+
+if(!leaderboard[d.rep_name]) leaderboard[d.rep_name]=0;
+leaderboard[d.rep_name]+=Number(d.deal_value||0);
 
 table.innerHTML += `
 <tr>
 <td>${d.client_name}</td>
 <td>${d.service_sold}</td>
 <td>$${d.deal_value}</td>
-<td>${d.activity_type}</td>
 <td>${d.rep_name}</td>
 </tr>
 `;
@@ -131,6 +138,17 @@ table.innerHTML += `
 
 document.getElementById("rev").innerText = revenue;
 document.getElementById("deals").innerText = data.length;
+
+/* leaderboard */
+let lb = Object.entries(leaderboard)
+.sort((a,b)=>b[1]-a[1]);
+
+const lbDiv = document.getElementById("leaderboard");
+lbDiv.innerHTML="";
+
+lb.forEach((item,i)=>{
+lbDiv.innerHTML += `<p>${i+1}. ${item[0]} - $${item[1]}</p>`;
+});
 }
 
 async function log(){
@@ -150,8 +168,6 @@ function logout(){
 supabase.auth.signOut();
 location.href="index.html";
 }
-
-function go(p){ location.href=p }
 
 init();
 </script>
