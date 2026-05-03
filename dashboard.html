@@ -1,136 +1,187 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SalesOS Dashboard</title>
+<title>SalesOS</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<style>
-body {
-  background: #000;
-  color: white;
-  font-family: Inter, sans-serif;
-}
-.glass {
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.1);
-}
-</style>
 </head>
 
-<body class="p-6">
+<body class="bg-black text-white font-sans p-6">
 
-<h1 class="text-2xl mb-4">SalesOS Dashboard</h1>
+<h1 class="text-3xl mb-6">SalesOS</h1>
+
 <button onclick="logout()" class="text-red-400 mb-4">Logout</button>
 
-<!-- STATS -->
-<div class="grid grid-cols-4 gap-4 mb-6">
-  <div class="glass p-4 rounded">Revenue <h2 id="rev">$0</h2></div>
-  <div class="glass p-4 rounded">Deals <h2 id="dealCount">0</h2></div>
-  <div class="glass p-4 rounded">Calls <h2 id="callCount">0</h2></div>
-  <div class="glass p-4 rounded">Appointments <h2 id="apptCount">0</h2></div>
+<!-- ADMIN VIEW -->
+<div id="adminView" class="hidden">
+
+<h2 class="text-xl mb-4">Admin Dashboard</h2>
+
+<div class="grid grid-cols-3 gap-4 mb-6">
+<div class="bg-zinc-900 p-4 rounded">Total Revenue: <span id="adminRevenue">0</span></div>
+<div class="bg-zinc-900 p-4 rounded">Total Deals: <span id="adminDeals">0</span></div>
+<div class="bg-zinc-900 p-4 rounded">Active Reps: <span id="repCount">0</span></div>
 </div>
 
-<!-- FORM -->
-<div class="glass p-4 rounded mb-6">
-  <select id="type" class="text-black mb-2">
-    <option>Deal Closed</option>
-    <option>Call</option>
-    <option>Appointment</option>
-  </select>
-  <input id="client" placeholder="Client" class="text-black mb-2">
-  <input id="value" type="number" placeholder="Value" class="text-black mb-2">
-  <input id="service" placeholder="Service" class="text-black mb-2">
-
-  <button onclick="add()" class="bg-white text-black px-4 py-2">Add</button>
+<div class="bg-zinc-900 p-4 rounded mb-6">
+<h3>Leaderboard</h3>
+<div id="leaderboard"></div>
 </div>
 
-<!-- TABLE -->
+</div>
+
+<!-- REP VIEW -->
+<div id="repView" class="hidden">
+
+<h2 class="text-xl mb-4">My Dashboard</h2>
+
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="bg-zinc-900 p-4 rounded">My Revenue: <span id="repRevenue">0</span></div>
+<div class="bg-zinc-900 p-4 rounded">My Deals: <span id="repDeals">0</span></div>
+</div>
+
+</div>
+
+<!-- SHARED (LOG + TABLE) -->
+
+<div class="bg-zinc-900 p-4 rounded mb-6">
+<h3 class="mb-4">Log Activity</h3>
+
+<select id="type" class="text-black mb-2">
+<option>Deal Closed</option>
+<option>Call</option>
+<option>Appointment</option>
+</select><br>
+
+<input id="client" placeholder="Client" class="text-black mb-2"><br>
+<input id="amount" placeholder="Amount" class="text-black mb-2"><br>
+<input id="service" placeholder="Service" class="text-black mb-2"><br>
+
+<button onclick="log()" class="bg-white text-black px-4 py-1">Save</button>
+</div>
+
+<div class="bg-zinc-900 p-4 rounded">
+<h3 class="mb-4">Activity</h3>
+
 <table class="w-full">
 <thead>
 <tr>
 <th>Client</th>
-<th>Type</th>
-<th>Value</th>
 <th>Service</th>
+<th>Amount</th>
+<th>Rep</th>
 </tr>
 </thead>
+
 <tbody id="table"></tbody>
 </table>
 
+</div>
+
 <script>
-const supabaseClient = supabase.createClient(
-  "https://qagfyyqfzhczoyhuihiv.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhZ2Z5eXFmemhjem95aHVpaGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mjc1MDIsImV4cCI6MjA5MzQwMzUwMn0.Idn8QeB0RKhgB2FB9jft7Gtp164S7aeSy3hRYSOMFVE"
+const supabase = window.supabase.createClient(
+"https://qagfyyqfzhczoyhuihiv.supabase.co",
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhZ2Z5eXFmemhjem95aHVpaGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mjc1MDIsImV4cCI6MjA5MzQwMzUwMn0.Idn8QeB0RKhgB2FB9jft7Gtp164S7aeSy3hRYSOMFVE"
 );
 
-let user;
+let user, role;
 
-/* CHECK LOGIN */
 async function init(){
-  const { data } = await supabaseClient.auth.getSession();
+const { data } = await supabase.auth.getUser();
+user = data.user;
 
-  if(!data.session){
-    window.location.href = "index.html";
-    return;
-  }
-
-  user = data.session.user;
-  load();
+if(!user){
+location.href="index.html";
+return;
 }
 
-/* LOAD DATA */
+const { data: profile } = await supabase
+.from("profiles")
+.select("*")
+.eq("id", user.id)
+.single();
+
+role = profile.role;
+
+if(role==="sales_rep"){
+document.getElementById("repView").classList.remove("hidden");
+}else{
+document.getElementById("adminView").classList.remove("hidden");
+}
+
+load();
+}
+
 async function load(){
-  const { data } = await supabaseClient.from("activities").select("*");
+let query = supabase.from("activities").select("*");
 
-  let revenue = 0, deals=0, calls=0, appts=0;
-
-  table.innerHTML = "";
-
-  data.forEach(d=>{
-    revenue += Number(d.deal_value || 0);
-
-    if(d.activity_type==="Deal Closed") deals++;
-    if(d.activity_type==="Call") calls++;
-    if(d.activity_type==="Appointment") appts++;
-
-    table.innerHTML += `
-    <tr>
-      <td>${d.client_name}</td>
-      <td>${d.activity_type}</td>
-      <td>$${d.deal_value}</td>
-      <td>${d.service_sold}</td>
-    </tr>`;
-  });
-
-  rev.innerText = "$"+revenue;
-  dealCount.innerText = deals;
-  callCount.innerText = calls;
-  apptCount.innerText = appts;
+if(role==="sales_rep"){
+query = query.eq("user_id", user.id);
 }
 
-/* ADD */
-async function add(){
-  await supabaseClient.from("activities").insert([{
-    client_name: client.value,
-    activity_type: type.value,
-    deal_value: value.value,
-    service_sold: service.value,
-    rep_name: user.email,
-    user_id: user.id
-  }]);
+const { data } = await query;
 
-  load();
+const table = document.getElementById("table");
+table.innerHTML="";
+
+let revenue=0;
+let leaderboard={};
+
+data.forEach(d=>{
+revenue += Number(d.deal_value||0);
+
+if(!leaderboard[d.rep_name]) leaderboard[d.rep_name]=0;
+leaderboard[d.rep_name]+=Number(d.deal_value||0);
+
+table.innerHTML += `
+<tr>
+<td>${d.client_name}</td>
+<td>${d.service_sold}</td>
+<td>$${d.deal_value}</td>
+<td>${d.rep_name}</td>
+</tr>
+`;
+});
+
+/* REP VIEW */
+document.getElementById("repRevenue").innerText = revenue;
+document.getElementById("repDeals").innerText = data.length;
+
+/* ADMIN VIEW */
+document.getElementById("adminRevenue").innerText = revenue;
+document.getElementById("adminDeals").innerText = data.length;
+document.getElementById("repCount").innerText = Object.keys(leaderboard).length;
+
+/* leaderboard */
+const lbDiv = document.getElementById("leaderboard");
+lbDiv.innerHTML="";
+
+Object.entries(leaderboard)
+.sort((a,b)=>b[1]-a[1])
+.forEach((r,i)=>{
+lbDiv.innerHTML += `<p>${i+1}. ${r[0]} - $${r[1]}</p>`;
+});
 }
 
-/* LOGOUT */
-async function logout(){
-  await supabaseClient.auth.signOut();
-  window.location.href = "index.html";
+async function log(){
+await supabase.from("activities").insert([{
+user_id:user.id,
+client_name:client.value,
+deal_value:amount.value,
+service_sold:service.value,
+activity_type:type.value,
+rep_name:user.email
+}]);
+
+load();
+}
+
+function logout(){
+supabase.auth.signOut();
+location.href="index.html";
 }
 
 init();
