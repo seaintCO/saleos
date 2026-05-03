@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body style="background:black;color:white">
+
+<h1>Activity</h1>
+<button onclick="back()">Back</button>
+
+<div id="data"></div>
+
+<script>
+const supabase = window.supabase.createClient(
+"https://qagfyyqfzhczoyhuihiv.supabase.co",
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+);
+
+async function load(){
+const { data } = await supabase.from("activities").select("*");
+dataDiv.innerHTML = JSON.stringify(data);
+}
+
+function back(){ location.href="dashboard.html"; }
+
+load();
+</script>
+
+</body>
+</html>
