@@ -1,12 +1,25 @@
 <!DOCTYPE html>
 <html>
-<body style="background:black;color:white">
+<head>
+<title>Team</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body class="bg-black text-white p-6">
 
 <h1>Team Page</h1>
-<button onclick="back()">Back</button>
+<button onclick="logout()">Logout</button>
+
+<script src="app.js"></script>
 
 <script>
-function back(){ location.href="dashboard.html"; }
+async function init(){
+  const user = await getUser();
+  if(!user){
+    alert("Login first");
+  }
+}
+init();
 </script>
 
 </body>
