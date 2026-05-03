@@ -1,95 +1,261 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>SalesOS</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<style>
-body { background:#000; color:white; font-family:Inter; }
-.glass { background:rgba(255,255,255,0.05); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); }
-</style>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SalesOS Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: Inter, sans-serif; background:#000; }
+    ::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#27272a;border-radius:10px}
+    .glass-card{background:rgba(24,24,27,.45);backdrop-filter:blur(12px);border:1px solid rgba(63,63,70,.45);}
+  </style>
 </head>
 
-<body class="p-6">
+<body class="text-zinc-100 antialiased min-h-screen flex">
+  <aside class="hidden md:flex flex-col w-64 fixed inset-y-0 left-0 bg-black border-r border-zinc-800/60 z-20">
+    <div class="h-16 flex items-center px-6 border-b border-zinc-800/60">
+      <span class="text-lg font-semibold tracking-tighter flex items-center gap-2">
+        <div class="w-6 h-6 rounded bg-gradient-to-tr from-blue-600 to-blue-400 flex items-center justify-center">
+          <iconify-icon icon="solar:chart-square-linear" class="text-white text-sm"></iconify-icon>
+        </div>
+        SALESOS
+      </span>
+    </div>
 
-<h1 class="text-2xl mb-4">Dashboard</h1>
-<button onclick="logout()" class="text-red-400 mb-4">Logout</button>
+    <nav class="flex-1 py-4 px-3 space-y-1">
+      <p class="px-3 text-xs text-zinc-500 uppercase tracking-widest mb-2 mt-4">Overview</p>
+      <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2 rounded-md bg-zinc-900/80 text-white font-medium text-sm border border-zinc-800/50">
+        <iconify-icon icon="solar:widget-5-linear" class="text-lg text-blue-500"></iconify-icon> Dashboard
+      </a>
+      <button class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
+        <iconify-icon icon="solar:users-group-rounded-linear" class="text-lg"></iconify-icon> Team / Reps
+      </button>
+      <button class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
+        <iconify-icon icon="solar:chart-2-linear" class="text-lg"></iconify-icon> Analytics
+      </button>
 
-<div class="grid grid-cols-4 gap-4 mb-6">
-<div class="glass p-4">Revenue <h2 id="rev">$0</h2></div>
-<div class="glass p-4">Deals <h2 id="deals">0</h2></div>
-</div>
+      <p class="px-3 text-xs text-zinc-500 uppercase tracking-widest mb-2 mt-6">Activity</p>
+      <button class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
+        <iconify-icon icon="solar:phone-calling-linear" class="text-lg"></iconify-icon> Call Logs
+      </button>
+      <button class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
+        <iconify-icon icon="solar:dollar-minimalistic-linear" class="text-lg"></iconify-icon> Deals Closed
+      </button>
+    </nav>
 
-<div class="glass p-4 mb-6">
-<input id="client" placeholder="Client" class="text-black mb-2">
-<input id="value" type="number" placeholder="Value" class="text-black mb-2">
-<button onclick="add()" class="bg-white text-black px-4 py-2">Add</button>
-</div>
+    <div class="p-4 border-t border-zinc-800/60">
+      <p id="userName" class="text-sm font-medium truncate">Loading...</p>
+      <p id="userEmail" class="text-xs text-zinc-500 truncate">User</p>
+      <button onclick="logout()" class="mt-3 w-full text-xs bg-zinc-900 border border-zinc-800 rounded-lg py-2 hover:bg-zinc-800">Logout</button>
+    </div>
+  </aside>
 
-<table class="w-full">
-<thead>
-<tr>
-<th>Client</th>
-<th>Value</th>
-</tr>
-</thead>
-<tbody id="table"></tbody>
-</table>
+  <main class="flex-1 md:ml-64 flex flex-col min-h-screen relative">
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none -z-10"></div>
 
-<script src="app.js"></script>
+    <header class="h-16 flex items-center justify-between px-4 sm:px-8 border-b border-zinc-800/60 bg-black/50 backdrop-blur-md sticky top-0 z-10">
+      <div>
+        <h1 class="text-lg font-semibold tracking-tight">Dashboard Overview</h1>
+        <p id="roleBadge" class="text-xs text-zinc-500">Loading role...</p>
+      </div>
+      <button onclick="exportCSV()" class="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-md text-sm font-semibold hover:bg-zinc-200">
+        <iconify-icon icon="solar:file-download-linear"></iconify-icon> Export Report
+      </button>
+    </header>
+
+    <div class="flex-1 p-4 sm:p-8 overflow-y-auto">
+      <div class="mb-8">
+        <h2 id="headline" class="text-2xl font-semibold tracking-tighter">Company Performance</h2>
+        <p id="subheadline" class="text-sm text-zinc-400 mt-1">Live CRM metrics across your sales system.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Total Revenue</p><h3 id="totalRevenue" class="text-3xl font-semibold mt-3">$0</h3></div>
+        <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Calls / Follow-ups</p><h3 id="totalCalls" class="text-3xl font-semibold mt-3">0</h3></div>
+        <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Appointments</p><h3 id="totalAppts" class="text-3xl font-semibold mt-3">0</h3></div>
+        <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Deals Closed</p><h3 id="totalDeals" class="text-3xl font-semibold mt-3">0</h3></div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <div class="glass-card rounded-xl p-6 lg:col-span-2">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-semibold">Recent Activity</h3>
+            <input id="searchInput" oninput="renderActivities()" placeholder="Search client, service, rep..." class="bg-black/50 border border-zinc-800 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 w-full max-w-xs">
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead><tr class="border-b border-zinc-800/60">
+                <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Client</th>
+                <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Activity</th>
+                <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Amount</th>
+                <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Rep</th>
+                <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Date</th>
+              </tr></thead>
+              <tbody id="activityTable" class="divide-y divide-zinc-800/40"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-xl p-6">
+          <h3 class="text-base font-semibold mb-6">Log Activity</h3>
+          <form onsubmit="logActivity(event)" class="space-y-4">
+            <select id="activityType" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
+              <option>Deal Closed</option><option>Appointment Set</option><option>Discovery Call</option><option>Follow-up</option><option>Cold Call</option><option>Closed Lost</option>
+            </select>
+            <input id="clientName" required placeholder="Business / Client" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
+            <input id="dealValue" type="number" value="0" min="0" step="0.01" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
+            <input id="serviceSold" placeholder="Website + AI Agent" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
+            <textarea id="notes" rows="3" placeholder="Notes" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500"></textarea>
+            <button class="w-full bg-white text-black font-semibold text-sm py-3 rounded-lg hover:bg-zinc-200">Save Activity</button>
+            <p id="saveMessage" class="text-xs text-zinc-400"></p>
+          </form>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div id="leaderboardCard" class="glass-card rounded-xl p-6">
+          <h3 class="text-base font-semibold mb-4">Rep Leaderboard</h3>
+          <div id="leaderboard" class="space-y-3"></div>
+        </div>
+
+        <div id="teamCard" class="glass-card rounded-xl p-6 lg:col-span-2">
+          <h3 class="text-base font-semibold mb-4">Team / Operator Tracking</h3>
+          <div id="teamList" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+        </div>
+      </div>
+    </div>
+  </main>
 
 <script>
-async function init(){
-  const user = await getUser();
+const supabaseClient = supabase.createClient(
+  "https://qagfyyqfzhczoyhuihiv.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhZ2Z5eXFmemhjem95aHVpaGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mjc1MDIsImV4cCI6MjA5MzQwMzUwMn0.Idn8QeB0RKhgB2FB9jft7Gtp164S7aeSy3hRYSOMFVE"
+);
 
-  if(!user){
-    alert("Login first");
-    return;
+let currentUser = null, currentRole = "sales_rep", activities = [];
+
+function money(n){ return new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0}).format(Number(n||0)); }
+function safe(v){ return String(v ?? "").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
+
+async function init(){
+  const { data } = await supabaseClient.auth.getSession();
+  if(!data.session){ window.location.href = "index.html"; return; }
+  currentUser = data.session.user;
+
+  const { data: profile } = await supabaseClient.from("profiles").select("*").eq("id", currentUser.id).maybeSingle();
+  currentRole = profile?.role || "sales_rep";
+
+  userName.innerText = profile?.full_name || currentUser.email;
+  userEmail.innerText = currentUser.email;
+  roleBadge.innerText = currentRole === "sales_rep" ? "Sales Rep View" : "Admin / Growth Operator View";
+
+  if(currentRole === "sales_rep"){
+    headline.innerText = "My Performance";
+    subheadline.innerText = "Your personal logged activity and sales progress.";
+    leaderboardCard.style.display = "none";
+    teamCard.style.display = "none";
   }
 
-  load();
+  await loadActivities();
 }
 
-async function load(){
-  const data = await getActivities();
+async function loadActivities(){
+  let query = supabaseClient.from("activities").select("*").order("created_at",{ascending:false});
+  if(currentRole === "sales_rep") query = query.eq("user_id", currentUser.id);
 
-  let revenue = 0;
+  const { data, error } = await query;
+  if(error){ alert(error.message); return; }
+  activities = data || [];
+  renderDashboard();
+}
 
-  table.innerHTML = "";
+async function logActivity(e){
+  e.preventDefault();
+  const { error } = await supabaseClient.from("activities").insert([{
+    user_id: currentUser.id,
+    rep_name: currentUser.email,
+    activity_type: activityType.value,
+    client_name: clientName.value.trim(),
+    deal_value: Number(dealValue.value || 0),
+    service_sold: serviceSold.value.trim(),
+    status: activityType.value,
+    notes: notes.value.trim()
+  }]);
 
-  data.forEach(d=>{
-    revenue += Number(d.deal_value||0);
+  if(error){ saveMessage.innerText = error.message; return; }
+  saveMessage.innerText = "Saved.";
+  clientName.value=""; dealValue.value="0"; serviceSold.value=""; notes.value="";
+  await loadActivities();
+}
 
-    table.innerHTML += `
-    <tr>
-      <td>${d.client_name}</td>
-      <td>$${d.deal_value}</td>
-    </tr>`;
+function renderDashboard(){
+  const revenue = activities.filter(a=>a.activity_type==="Deal Closed").reduce((s,a)=>s+Number(a.deal_value||0),0);
+  totalRevenue.innerText = money(revenue);
+  totalCalls.innerText = activities.filter(a=>["Cold Call","Follow-up","Discovery Call"].includes(a.activity_type)).length;
+  totalAppts.innerText = activities.filter(a=>a.activity_type==="Appointment Set").length;
+  totalDeals.innerText = activities.filter(a=>a.activity_type==="Deal Closed").length;
+  renderActivities(); renderLeaderboard(); renderTeam();
+}
+
+function renderActivities(){
+  const q = (searchInput.value || "").toLowerCase();
+  const filtered = activities.filter(a => [a.client_name,a.service_sold,a.rep_name,a.activity_type].join(" ").toLowerCase().includes(q));
+  activityTable.innerHTML = filtered.map(a=>`
+    <tr class="hover:bg-zinc-900/40">
+      <td class="px-3 py-3"><p class="text-sm font-medium">${safe(a.client_name||"No client")}</p><p class="text-xs text-zinc-500">${safe(a.service_sold||"")}</p></td>
+      <td class="px-3 py-3 text-sm text-zinc-300">${safe(a.activity_type)}</td>
+      <td class="px-3 py-3 text-sm font-medium">${money(a.deal_value)}</td>
+      <td class="px-3 py-3 text-sm text-zinc-400">${safe(a.rep_name)}</td>
+      <td class="px-3 py-3 text-xs text-zinc-500">${new Date(a.created_at).toLocaleString()}</td>
+    </tr>`).join("");
+}
+
+function renderLeaderboard(){
+  const map = {};
+  activities.forEach(a=>{
+    const rep=a.rep_name||"Unknown";
+    if(!map[rep]) map[rep]={revenue:0,deals:0,actions:0};
+    map[rep].actions++;
+    if(a.activity_type==="Deal Closed"){ map[rep].revenue+=Number(a.deal_value||0); map[rep].deals++; }
   });
-
-  rev.innerText = "$"+revenue;
-  deals.innerText = data.length;
+  const rows = Object.entries(map).sort((a,b)=>b[1].revenue-a[1].revenue);
+  leaderboard.innerHTML = rows.length ? rows.map(([rep,s],i)=>`
+    <div class="flex items-center gap-3 p-3 rounded-lg bg-black/30 border border-zinc-800/50">
+      <div class="w-7 h-7 rounded-full bg-zinc-900 flex items-center justify-center text-xs">${i+1}</div>
+      <div class="flex-1"><p class="text-sm font-medium">${safe(rep)}</p><p class="text-xs text-zinc-500">${s.deals} deals • ${s.actions} actions</p></div>
+      <p class="text-sm font-semibold">${money(s.revenue)}</p>
+    </div>`).join("") : `<p class="text-sm text-zinc-500">No activity yet.</p>`;
 }
 
-async function add(){
-  const user = await getUser();
-
-  await addActivity({
-    client_name: client.value,
-    deal_value: value.value,
-    user_id: user.id,
-    rep_name: user.email
+function renderTeam(){
+  const map = {};
+  activities.forEach(a=>{
+    const rep=a.rep_name||"Unknown";
+    if(!map[rep]) map[rep]={actions:0,last:a.created_at};
+    map[rep].actions++; map[rep].last=a.created_at;
   });
-
-  load();
+  teamList.innerHTML = Object.entries(map).map(([rep,s])=>`
+    <div class="p-4 rounded-xl bg-black/30 border border-zinc-800/50">
+      <p class="font-medium">${safe(rep)}</p>
+      <p class="text-sm text-zinc-500">${s.actions} logged activities</p>
+      <p class="text-xs text-zinc-600 mt-2">Last: ${new Date(s.last).toLocaleString()}</p>
+    </div>`).join("") || `<p class="text-sm text-zinc-500">No team data yet.</p>`;
 }
+
+function exportCSV(){
+  const headers=["created_at","rep_name","activity_type","client_name","deal_value","service_sold","status","notes"];
+  const csv=[headers.join(","),...activities.map(a=>headers.map(h=>`"${String(a[h]??"").replaceAll('"','""')}"`).join(","))].join("\n");
+  const blob=new Blob([csv],{type:"text/csv"}), url=URL.createObjectURL(blob), a=document.createElement("a");
+  a.href=url; a.download="salesos-activity.csv"; a.click(); URL.revokeObjectURL(url);
+}
+
+async function logout(){ await supabaseClient.auth.signOut(); window.location.href="index.html"; }
 
 init();
 </script>
-
 </body>
 </html>
