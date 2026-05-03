@@ -30,7 +30,7 @@ body { font-family: 'Inter', sans-serif; background:#000; }
     <h1 class="text-xl mb-6">SALESOS</h1>
 
     <input id="authEmail" placeholder="Email" class="w-full mb-3 p-2 text-black">
-    <input id="authPassword" type="password" placeholder="Password" class="w-full mb-3 p-2 text-black">
+    <input id="authPassword" type="password" placeholder="Password" class="w-full mb-4 p-2 text-black">
     <input id="authName" placeholder="Name" class="w-full mb-4 p-2 text-black">
 
     <button onclick="signIn()" class="w-full bg-white text-black py-2 mb-2">Login</button>
@@ -42,194 +42,80 @@ body { font-family: 'Inter', sans-serif; background:#000; }
 
 <!-- APP -->
 <section id="appScreen" class="hidden-screen p-6">
-
 <h1 class="text-2xl mb-4">SalesOS Dashboard</h1>
 <button onclick="signOut()" class="text-red-400 mb-4">Logout</button>
 
-<!-- STATS -->
-<div class="grid grid-cols-4 gap-4 mb-6">
-<div class="glass-card p-4">Revenue: <span id="totalRevenue">$0</span></div>
-<div class="glass-card p-4">Calls: <span id="totalCalls">0</span></div>
-<div class="glass-card p-4">Appointments: <span id="totalAppts">0</span></div>
-<div class="glass-card p-4">Deals: <span id="totalDeals">0</span></div>
-</div>
-
-<!-- LOG -->
-<form onsubmit="logActivity(event)" class="glass-card p-4 mb-6">
-<select id="activityType" class="text-black mb-2">
-<option>Deal Closed</option>
-<option>Call</option>
-<option>Appointment</option>
-</select><br>
-
-<input id="clientName" placeholder="Client" class="text-black mb-2"><br>
-<input id="dealValue" type="number" value="0" class="text-black mb-2"><br>
-<input id="serviceSold" placeholder="Service" class="text-black mb-2"><br>
-
-<button class="bg-white text-black px-4 py-2">Save</button>
-<p id="saveMessage"></p>
-</form>
-
-<!-- TABLE -->
-<table class="w-full">
-<thead>
-<tr>
-<th>Client</th>
-<th>Activity</th>
-<th>Amount</th>
-<th>Rep</th>
-</tr>
-</thead>
-<tbody id="activityTable"></tbody>
-</table>
-
-<!-- LEADERBOARD -->
-<div class="mt-6">
-<h3>Leaderboard</h3>
-<div id="leaderboard"></div>
-</div>
-
+<div id="data"></div>
 </section>
 
 <script>
 const supabaseClient = supabase.createClient(
-"https://qagfyyqfzhczoyhuihiv.supabase.co",
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  "https://qagfyyqfzhczoyhuihiv.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhZ2Z5eXFmemhjem95aHVpaGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mjc1MDIsImV4cCI6MjA5MzQwMzUwMn0.Idn8QeB0RKhgB2FB9jft7Gtp164S7aeSy3hRYSOMFVE"
 );
 
 let currentUser;
-let activities = [];
-let role = "sales_rep";
 
-/* AUTH */
-
+/* SIGN UP */
 async function signUp(){
-const email = authEmail.value;
-const password = authPassword.value;
-const name = authName.value;
+  const email = authEmail.value;
+  const password = authPassword.value;
+  const name = authName.value;
 
-const { error } = await supabaseClient.auth.signUp({
-email,password,
-options:{ data:{ full_name:name }}
-});
+  const { error } = await supabaseClient.auth.signUp({
+    email,
+    password,
+    options:{ data:{ full_name:name }}
+  });
 
-authMessage.innerText = error ? error.message : "Check email then login";
+  if(error){
+    authMessage.innerText = error.message;
+  } else {
+    authMessage.innerText = "Account created. Now login.";
+  }
 }
 
+/* LOGIN */
 async function signIn(){
-const email = authEmail.value;
-const password = authPassword.value;
+  const email = authEmail.value;
+  const password = authPassword.value;
 
-const { data, error } = await supabaseClient.auth.signInWithPassword({ email,password });
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password
+  });
 
-if(error){ authMessage.innerText = error.message; return; }
+  if(error){
+    authMessage.innerText = error.message;
+    return;
+  }
 
-currentUser = data.user;
-showApp();
+  currentUser = data.user;
+  showApp();
 }
 
+/* SHOW APP */
+function showApp(){
+  authScreen.classList.add("hidden-screen");
+  appScreen.classList.remove("hidden-screen");
+
+  data.innerHTML = "Logged in as: " + currentUser.email;
+}
+
+/* LOGOUT */
 async function signOut(){
-await supabaseClient.auth.signOut();
-location.reload();
+  await supabaseClient.auth.signOut();
+  location.reload();
 }
 
+/* SESSION CHECK */
 async function checkSession(){
-const { data } = await supabaseClient.auth.getSession();
-if(data.session){
-currentUser = data.session.user;
-showApp();
-}
-}
+  const { data } = await supabaseClient.auth.getSession();
 
-/* APP */
-
-async function showApp(){
-authScreen.classList.add("hidden-screen");
-appScreen.classList.remove("hidden-screen");
-
-const { data: profile } = await supabaseClient
-.from("profiles")
-.select("*")
-.eq("id", currentUser.id)
-.single();
-
-role = profile?.role || "sales_rep";
-
-loadActivities();
-}
-
-async function loadActivities(){
-
-let query = supabaseClient.from("activities").select("*");
-
-if(role==="sales_rep"){
-query = query.eq("user_id", currentUser.id);
-}
-
-const { data } = await query;
-
-activities = data || [];
-render();
-}
-
-async function logActivity(e){
-e.preventDefault();
-
-await supabaseClient.from("activities").insert([{
-user_id:currentUser.id,
-rep_name:currentUser.email,
-activity_type:activityType.value,
-client_name:clientName.value,
-deal_value:dealValue.value,
-service_sold:serviceSold.value
-}]);
-
-loadActivities();
-}
-
-/* RENDER */
-
-function render(){
-let revenue = 0;
-let deals = 0;
-let calls = 0;
-let appts = 0;
-
-let map = {};
-
-activityTable.innerHTML = "";
-
-activities.forEach(a=>{
-revenue += Number(a.deal_value||0);
-
-if(a.activity_type==="Deal Closed") deals++;
-if(a.activity_type==="Call") calls++;
-if(a.activity_type==="Appointment") appts++;
-
-if(!map[a.rep_name]) map[a.rep_name]=0;
-map[a.rep_name]+=Number(a.deal_value||0);
-
-activityTable.innerHTML += `
-<tr>
-<td>${a.client_name}</td>
-<td>${a.activity_type}</td>
-<td>$${a.deal_value}</td>
-<td>${a.rep_name}</td>
-</tr>`;
-});
-
-totalRevenue.innerText = "$"+revenue;
-totalDeals.innerText = deals;
-totalCalls.innerText = calls;
-totalAppts.innerText = appts;
-
-/* leaderboard */
-leaderboard.innerHTML="";
-Object.entries(map)
-.sort((a,b)=>b[1]-a[1])
-.forEach((r,i)=>{
-leaderboard.innerHTML += `<p>${i+1}. ${r[0]} - $${r[1]}</p>`;
-});
+  if(data.session){
+    currentUser = data.session.user;
+    showApp();
+  }
 }
 
 checkSession();
