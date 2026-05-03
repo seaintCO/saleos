@@ -2,156 +2,136 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SalesOS Dashboard</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<style>
+body {
+  background: #000;
+  color: white;
+  font-family: Inter, sans-serif;
+}
+.glass {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+</style>
 </head>
 
-<body class="bg-black text-zinc-100 font-sans">
+<body class="p-6">
 
-<div class="flex">
-
-<!-- SIDEBAR -->
-<div class="w-64 bg-black border-r border-zinc-800 p-4">
-<h1 class="text-xl mb-6">SalesOS</h1>
-
-<button onclick="go('dashboard.html')" class="block mb-2">Dashboard</button>
-<button onclick="go('team.html')" class="block mb-2">Team</button>
-<button onclick="go('activity.html')" class="block mb-2">Activity</button>
-<button onclick="go('settings.html')" class="block mb-2">Settings</button>
-
-<button onclick="logout()" class="mt-6 text-red-400">Logout</button>
-</div>
-
-<!-- MAIN -->
-<div class="flex-1 p-6">
-
-<h1 class="text-2xl mb-6">Dashboard</h1>
+<h1 class="text-2xl mb-4">SalesOS Dashboard</h1>
+<button onclick="logout()" class="text-red-400 mb-4">Logout</button>
 
 <!-- STATS -->
-<div class="grid grid-cols-4 gap-4 mb-8">
-<div class="bg-zinc-900 p-4 rounded">Revenue: <span id="rev">0</span></div>
-<div class="bg-zinc-900 p-4 rounded">Deals: <span id="deals">0</span></div>
-<div class="bg-zinc-900 p-4 rounded">Calls: <span id="calls">0</span></div>
-<div class="bg-zinc-900 p-4 rounded">Appointments: <span id="apps">0</span></div>
+<div class="grid grid-cols-4 gap-4 mb-6">
+  <div class="glass p-4 rounded">Revenue <h2 id="rev">$0</h2></div>
+  <div class="glass p-4 rounded">Deals <h2 id="dealCount">0</h2></div>
+  <div class="glass p-4 rounded">Calls <h2 id="callCount">0</h2></div>
+  <div class="glass p-4 rounded">Appointments <h2 id="apptCount">0</h2></div>
 </div>
 
-<!-- LOG FORM -->
-<div class="bg-zinc-900 p-4 rounded mb-6">
-<h2 class="mb-4">Log Activity</h2>
+<!-- FORM -->
+<div class="glass p-4 rounded mb-6">
+  <select id="type" class="text-black mb-2">
+    <option>Deal Closed</option>
+    <option>Call</option>
+    <option>Appointment</option>
+  </select>
+  <input id="client" placeholder="Client" class="text-black mb-2">
+  <input id="value" type="number" placeholder="Value" class="text-black mb-2">
+  <input id="service" placeholder="Service" class="text-black mb-2">
 
-<select id="type" class="text-black mb-2">
-<option>Deal Closed</option>
-<option>Call</option>
-<option>Appointment</option>
-</select><br>
-
-<input id="client" placeholder="Client" class="text-black mb-2"><br>
-<input id="amount" placeholder="Amount" class="text-black mb-2"><br>
-<input id="service" placeholder="Service" class="text-black mb-2"><br>
-
-<button onclick="log()" class="bg-white text-black px-3 py-1">Save</button>
+  <button onclick="add()" class="bg-white text-black px-4 py-2">Add</button>
 </div>
 
 <!-- TABLE -->
-<table class="w-full text-left">
+<table class="w-full">
 <thead>
 <tr>
 <th>Client</th>
-<th>Service</th>
-<th>Amount</th>
 <th>Type</th>
-<th>Rep</th>
+<th>Value</th>
+<th>Service</th>
 </tr>
 </thead>
-
 <tbody id="table"></tbody>
 </table>
 
-</div>
-</div>
-
 <script>
-const supabase = window.supabase.createClient(
-"https://qagfyyqfzhczoyhuihiv.supabase.co",
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhZ2Z5eXFmemhjem95aHVpaGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mjc1MDIsImV4cCI6MjA5MzQwMzUwMn0.Idn8QeB0RKhgB2FB9jft7Gtp164S7aeSy3hRYSOMFVE"
+const supabaseClient = supabase.createClient(
+  "https://qagfyyqfzhczoyhuihiv.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhZ2Z5eXFmemhjem95aHVpaGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mjc1MDIsImV4cCI6MjA5MzQwMzUwMn0.Idn8QeB0RKhgB2FB9jft7Gtp164S7aeSy3hRYSOMFVE"
 );
 
-let user, role;
+let user;
 
+/* CHECK LOGIN */
 async function init(){
-const { data } = await supabase.auth.getUser();
-user = data.user;
+  const { data } = await supabaseClient.auth.getSession();
 
-if(!user){
-location.href="index.html";
-return;
+  if(!data.session){
+    window.location.href = "index.html";
+    return;
+  }
+
+  user = data.session.user;
+  load();
 }
 
-const { data: profile } = await supabase
-.from("profiles")
-.select("*")
-.eq("id", user.id)
-.single();
-
-role = profile.role;
-
-load();
-}
-
+/* LOAD DATA */
 async function load(){
-let query = supabase.from("activities").select("*");
+  const { data } = await supabaseClient.from("activities").select("*");
 
-if(role==="sales_rep"){
-query = query.eq("user_id", user.id);
+  let revenue = 0, deals=0, calls=0, appts=0;
+
+  table.innerHTML = "";
+
+  data.forEach(d=>{
+    revenue += Number(d.deal_value || 0);
+
+    if(d.activity_type==="Deal Closed") deals++;
+    if(d.activity_type==="Call") calls++;
+    if(d.activity_type==="Appointment") appts++;
+
+    table.innerHTML += `
+    <tr>
+      <td>${d.client_name}</td>
+      <td>${d.activity_type}</td>
+      <td>$${d.deal_value}</td>
+      <td>${d.service_sold}</td>
+    </tr>`;
+  });
+
+  rev.innerText = "$"+revenue;
+  dealCount.innerText = deals;
+  callCount.innerText = calls;
+  apptCount.innerText = appts;
 }
 
-const { data } = await query;
+/* ADD */
+async function add(){
+  await supabaseClient.from("activities").insert([{
+    client_name: client.value,
+    activity_type: type.value,
+    deal_value: value.value,
+    service_sold: service.value,
+    rep_name: user.email,
+    user_id: user.id
+  }]);
 
-const table = document.getElementById("table");
-table.innerHTML="";
-
-let revenue=0;
-
-data.forEach(d=>{
-revenue += Number(d.deal_value||0);
-
-table.innerHTML += `
-<tr>
-<td>${d.client_name}</td>
-<td>${d.service_sold}</td>
-<td>$${d.deal_value}</td>
-<td>${d.activity_type}</td>
-<td>${d.rep_name}</td>
-</tr>
-`;
-});
-
-document.getElementById("rev").innerText = revenue;
-document.getElementById("deals").innerText = data.length;
+  load();
 }
 
-async function log(){
-await supabase.from("activities").insert([{
-user_id:user.id,
-client_name:client.value,
-deal_value:amount.value,
-service_sold:service.value,
-activity_type:type.value,
-rep_name:user.email
-}]);
-
-load();
+/* LOGOUT */
+async function logout(){
+  await supabaseClient.auth.signOut();
+  window.location.href = "index.html";
 }
-
-function logout(){
-supabase.auth.signOut();
-location.href="index.html";
-}
-
-function go(p){ location.href=p }
 
 init();
 </script>
