@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SalesOS Dashboard</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+</head>
+
+<body class="bg-black text-white p-6">
+
+<h1 class="text-3xl mb-6">SalesOS Dashboard</h1>
+
+<button onclick="logout()" class="mb-4 bg-red-500 px-3 py-1">Logout</button>
+
+<div class="mb-6">
+<input id="client" placeholder="Client" class="text-black p-2"><br><br>
+<input id="amount" placeholder="Amount" class="text-black p-2"><br><br>
+<input id="service" placeholder="Service" class="text-black p-2"><br><br>
+
+<button onclick="save()" class="bg-green-500 px-4 py-2">Log Deal</button>
+</div>
+
+<h2 class="text-xl mb-2">Activity</h2>
+
+<table class="w-full text-left border">
+<thead>
+<tr>
+<th>Client</th>
+<th>Service</th>
+<th>Amount</th>
+<th>Rep</th>
+</tr>
+</thead>
+
+<tbody id="table"></tbody>
+</table>
+
+<script>
+const supabase = window.supabase.createClient(
+  "https://qagfyyqfzhczoyhuihiv.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhZ2Z5eXFmemhjem95aHVpaGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mjc1MDIsImV4cCI6MjA5MzQwMzUwMn0.Idn8QeB0RKhgB2FB9jft7Gtp164S7aeSy3hRYSOMFVE"
+);
+
+let user;
+let role = "sales_rep";
+
+async function init(){
+  const { data } = await supabase.auth.getUser();
+  user = data.user;
+
+  if(!user){
+    window.location.href = "index.html";
+    return;
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  role = profile?.role || "sales_rep";
+
+  load();
+}
+
+async function load(){
+  let query = supabase.from("activities").select("*");
+
+  if(role === "sales_rep"){
+    query = query.eq("user_id", user.id);
+  }
+
+  const { data } = await query;
+
+  const table = document.getElementById("table");
+  table.innerHTML = "";
+
+  data.forEach(item => {
+    table.innerHTML += `
+      <tr>
+        <td>${item.client_name}</td>
+        <td>${item.service_sold}</td>
+        <td>$${item.deal_value}</td>
+        <td>${item.rep_name}</td>
+      </tr>
+    `;
+  });
+}
+
+async function save(){
+  const client = document.getElementById("client").value;
+  const amount = document.getElementById("amount").value;
+  const service = document.getElementById("service").value;
+
+  await supabase.from("activities").insert([{
+    user_id: user.id,
+    client_name: client,
+    deal_value: amount,
+    service_sold: service,
+    rep_name: user.email,
+    activity_type: "Deal",
+    status: "closed"
+  }]);
+
+  load();
+}
+
+function logout(){
+  supabase.auth.signOut();
+  window.location.href = "index.html";
+}
+
+init();
+</script>
+
+</body>
+</html>
