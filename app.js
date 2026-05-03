@@ -5,20 +5,58 @@ const supabaseClient = supabase.createClient(
 
 let currentUser;
 
-/* SESSION CHECK */
-async function initAuth(){
-  const { data } = await supabaseClient.auth.getSession();
+/* LOGIN */
+async function login(email, password){
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password
+  });
 
-  if(!data.session){
-    window.location.href = "index.html";
+  if(error){
+    alert(error.message);
     return;
   }
 
-  currentUser = data.session.user;
+  window.location.href = "dashboard.html";
+}
+
+/* SIGNUP */
+async function signup(email, password){
+  const { error } = await supabaseClient.auth.signUp({
+    email,
+    password
+  });
+
+  if(error){
+    alert(error.message);
+  } else {
+    alert("Account created. Login now.");
+  }
+}
+
+/* CHECK SESSION */
+async function getUser(){
+  const { data } = await supabaseClient.auth.getSession();
+  return data.session?.user || null;
 }
 
 /* LOGOUT */
 async function logout(){
   await supabaseClient.auth.signOut();
   window.location.href = "index.html";
+}
+
+/* GET DATA */
+async function getActivities(){
+  const { data } = await supabaseClient
+    .from("activities")
+    .select("*")
+    .order("created_at", { ascending:false });
+
+  return data || [];
+}
+
+/* ADD DATA */
+async function addActivity(obj){
+  await supabaseClient.from("activities").insert([obj]);
 }
