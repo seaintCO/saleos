@@ -1,37 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>SalesOS</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body { background:#000; color:white; font-family:Inter; }
+.glass { background:rgba(255,255,255,0.05); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); }
+</style>
+
+</head>
+
+<body class="p-6">
+
+<h1 class="text-2xl mb-4">Dashboard</h1>
+<button onclick="logout()" class="text-red-400 mb-4">Logout</button>
+
+<div class="grid grid-cols-4 gap-4 mb-6">
+<div class="glass p-4">Revenue <h2 id="rev">$0</h2></div>
+<div class="glass p-4">Deals <h2 id="deals">0</h2></div>
+</div>
+
+<div class="glass p-4 mb-6">
+<input id="client" placeholder="Client" class="text-black mb-2">
+<input id="value" type="number" placeholder="Value" class="text-black mb-2">
+<button onclick="add()" class="bg-white text-black px-4 py-2">Add</button>
+</div>
+
+<table class="w-full">
+<thead>
+<tr>
+<th>Client</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody id="table"></tbody>
+</table>
+
 <script src="app.js"></script>
 
 <script>
-initAuth();
+async function init(){
+  const user = await getUser();
 
-async function loadDashboard(){
+  if(!user){
+    alert("Login first");
+    return;
+  }
+
+  load();
+}
+
+async function load(){
   const data = await getActivities();
 
   let revenue = 0;
 
+  table.innerHTML = "";
+
   data.forEach(d=>{
-    revenue += Number(d.deal_value || 0);
+    revenue += Number(d.deal_value||0);
+
+    table.innerHTML += `
+    <tr>
+      <td>${d.client_name}</td>
+      <td>$${d.deal_value}</td>
+    </tr>`;
   });
 
-  // 🔥 Update your UI cards
-  document.querySelectorAll("h3")[0].innerText = "$" + revenue;
+  rev.innerText = "$"+revenue;
+  deals.innerText = data.length;
 }
 
-loadDashboard();
-
-/* LOG BUTTON */
-async function logDeal(){
-  const inputs = document.querySelectorAll("input");
+async function add(){
+  const user = await getUser();
 
   await addActivity({
-    client_name: inputs[0].value,
-    deal_value: inputs[1].value,
-    service_sold: inputs[2].value,
-    rep_name: currentUser.email,
-    user_id: currentUser.id,
-    activity_type: "Deal Closed"
+    client_name: client.value,
+    deal_value: value.value,
+    user_id: user.id,
+    rep_name: user.email
   });
 
-  alert("Saved");
+  load();
 }
+
+init();
 </script>
+
+</body>
+</html>
