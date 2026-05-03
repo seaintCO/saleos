@@ -1,47 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>SalesOS Elite</title>
+<title>SalesOS</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<style>
-body { background:black; color:white; font-family:Inter; }
-.card { background:#111; padding:20px; border-radius:12px; }
-</style>
-
 </head>
 
-<body class="p-6">
+<body class="bg-black text-white font-sans p-6">
 
-<h1 class="text-3xl mb-6">SalesOS Elite Dashboard</h1>
+<h1 class="text-3xl mb-6">SalesOS</h1>
 
-<div class="flex gap-6">
+<button onclick="logout()" class="text-red-400 mb-4">Logout</button>
 
-<!-- LEFT -->
-<div class="w-64">
-<button onclick="logout()" class="mb-4 text-red-400">Logout</button>
+<!-- ADMIN VIEW -->
+<div id="adminView" class="hidden">
 
-<div class="card mb-4">
-<h2>Stats</h2>
-<p>Revenue: <span id="rev">0</span></p>
-<p>Deals: <span id="deals">0</span></p>
+<h2 class="text-xl mb-4">Admin Dashboard</h2>
+
+<div class="grid grid-cols-3 gap-4 mb-6">
+<div class="bg-zinc-900 p-4 rounded">Total Revenue: <span id="adminRevenue">0</span></div>
+<div class="bg-zinc-900 p-4 rounded">Total Deals: <span id="adminDeals">0</span></div>
+<div class="bg-zinc-900 p-4 rounded">Active Reps: <span id="repCount">0</span></div>
 </div>
 
-<div class="card">
-<h2>Leaderboard</h2>
+<div class="bg-zinc-900 p-4 rounded mb-6">
+<h3>Leaderboard</h3>
 <div id="leaderboard"></div>
 </div>
 
 </div>
 
-<!-- RIGHT -->
-<div class="flex-1">
+<!-- REP VIEW -->
+<div id="repView" class="hidden">
 
-<div class="card mb-6">
-<h2 class="mb-4">Log Activity</h2>
+<h2 class="text-xl mb-4">My Dashboard</h2>
+
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="bg-zinc-900 p-4 rounded">My Revenue: <span id="repRevenue">0</span></div>
+<div class="bg-zinc-900 p-4 rounded">My Deals: <span id="repDeals">0</span></div>
+</div>
+
+</div>
+
+<!-- SHARED (LOG + TABLE) -->
+
+<div class="bg-zinc-900 p-4 rounded mb-6">
+<h3 class="mb-4">Log Activity</h3>
 
 <select id="type" class="text-black mb-2">
 <option>Deal Closed</option>
@@ -53,11 +60,11 @@ body { background:black; color:white; font-family:Inter; }
 <input id="amount" placeholder="Amount" class="text-black mb-2"><br>
 <input id="service" placeholder="Service" class="text-black mb-2"><br>
 
-<button onclick="log()" class="bg-white text-black px-3 py-1">Save</button>
+<button onclick="log()" class="bg-white text-black px-4 py-1">Save</button>
 </div>
 
-<div class="card">
-<h2 class="mb-4">Recent Activity</h2>
+<div class="bg-zinc-900 p-4 rounded">
+<h3 class="mb-4">Activity</h3>
 
 <table class="w-full">
 <thead>
@@ -72,9 +79,6 @@ body { background:black; color:white; font-family:Inter; }
 <tbody id="table"></tbody>
 </table>
 
-</div>
-
-</div>
 </div>
 
 <script>
@@ -101,6 +105,12 @@ const { data: profile } = await supabase
 .single();
 
 role = profile.role;
+
+if(role==="sales_rep"){
+document.getElementById("repView").classList.remove("hidden");
+}else{
+document.getElementById("adminView").classList.remove("hidden");
+}
 
 load();
 }
@@ -136,18 +146,23 @@ table.innerHTML += `
 `;
 });
 
-document.getElementById("rev").innerText = revenue;
-document.getElementById("deals").innerText = data.length;
+/* REP VIEW */
+document.getElementById("repRevenue").innerText = revenue;
+document.getElementById("repDeals").innerText = data.length;
+
+/* ADMIN VIEW */
+document.getElementById("adminRevenue").innerText = revenue;
+document.getElementById("adminDeals").innerText = data.length;
+document.getElementById("repCount").innerText = Object.keys(leaderboard).length;
 
 /* leaderboard */
-let lb = Object.entries(leaderboard)
-.sort((a,b)=>b[1]-a[1]);
-
 const lbDiv = document.getElementById("leaderboard");
 lbDiv.innerHTML="";
 
-lb.forEach((item,i)=>{
-lbDiv.innerHTML += `<p>${i+1}. ${item[0]} - $${item[1]}</p>`;
+Object.entries(leaderboard)
+.sort((a,b)=>b[1]-a[1])
+.forEach((r,i)=>{
+lbDiv.innerHTML += `<p>${i+1}. ${r[0]} - $${r[1]}</p>`;
 });
 }
 
