@@ -14,7 +14,934 @@
     ::-webkit-scrollbar{width:6px;height:6px}
     ::-webkit-scrollbar-thumb{background:#27272a;border-radius:10px}
     .glass-card{background:rgba(24,24,27,.45);backdrop-filter:blur(12px);border:1px solid rgba(63,63,70,.45);}
+    .tab-active{background:rgba(24,24,27,.8);color:#fff;border:1px solid rgba(63,63,70,.5);}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SalesOS Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: Inter, sans-serif; background:#000; }
+    ::-webkit-scrollbar{width:6px;height:6px}
+    ::-webkit-scrollbar-thumb{background:#27272a;border-radius:10px}
+    .glass-card{background:rgba(24,24,27,.45);backdrop-filter:blur(12px);border:1px solid rgba(63,63,70,.45);}
     .tab-active{background:rgba(24,24,27,.8);color:#fff;border:1px solid rgba(63,63,70,.5);}
+  </style>
+</head>
+
+<body class="text-zinc-100 antialiased min-h-screen flex">
+  <aside class="hidden md:flex flex-col w-64 fixed inset-y-0 left-0 bg-black border-r border-zinc-800/60 z-20">
+    <div class="h-16 flex items-center px-6 border-b border-zinc-800/60">
+      <span class="text-lg font-semibold tracking-tighter flex items-center gap-2">
+        <div class="w-6 h-6 rounded bg-gradient-to-tr from-blue-600 to-blue-400 flex items-center justify-center">
+          <iconify-icon icon="solar:chart-square-linear" class="text-white text-sm"></iconify-icon>
+        </div>
+        SALESOS
+      </span>
+    </div>
+
+    <nav class="flex-1 py-4 px-3 space-y-1">
+      <p class="px-3 text-xs text-zinc-500 uppercase tracking-widest mb-2 mt-4">Overview</p>
+
+      <button onclick="showTab('dashboard', this)" class="tab-btn tab-active w-full flex items-center gap-3 px-3 py-2 rounded-md font-medium text-sm">
+        <iconify-icon icon="solar:widget-5-linear" class="text-lg text-blue-500"></iconify-icon> Dashboard
+      </button>
+
+      <button id="teamNavBtn" onclick="showTab('team', this)" class="tab-btn w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
+        <iconify-icon icon="solar:users-group-rounded-linear" class="text-lg"></iconify-icon> Team / Reps
+      </button>
+
+      <button onclick="showTab('analytics', this)" class="tab-btn w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
+        <iconify-icon icon="solar:chart-2-linear" class="text-lg"></iconify-icon> Analytics
+      </button>
+
+      <button onclick="showTab('pricing', this)" class="tab-btn w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
+        <iconify-icon icon="solar:tag-price-linear" class="text-lg"></iconify-icon> Pricing / Offers
+      </button>
+
+      <p class="px-3 text-xs text-zinc-500 uppercase tracking-widest mb-2 mt-6">Activity</p>
+
+      <button onclick="showTab('calls', this)" class="tab-btn w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
+        <iconify-icon icon="solar:phone-calling-linear" class="text-lg"></iconify-icon> Call Logs
+      </button>
+
+      <button onclick="showTab('deals', this)" class="tab-btn w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
+        <iconify-icon icon="solar:dollar-minimalistic-linear" class="text-lg"></iconify-icon> Deals Closed
+      </button>
+    </nav>
+
+    <div class="p-4 border-t border-zinc-800/60">
+      <p id="userName" class="text-sm font-medium truncate">Loading...</p>
+      <p id="userEmail" class="text-xs text-zinc-500 truncate">User</p>
+      <button onclick="logout()" class="mt-3 w-full text-xs bg-zinc-900 border border-zinc-800 rounded-lg py-2 hover:bg-zinc-800">Logout</button>
+    </div>
+  </aside>
+
+  <main class="flex-1 md:ml-64 flex flex-col min-h-screen relative">
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+
+    <header class="h-16 flex items-center justify-between px-4 sm:px-8 border-b border-zinc-800/60 bg-black/50 backdrop-blur-md sticky top-0 z-10">
+      <div>
+        <h1 id="pageTitle" class="text-lg font-semibold tracking-tight">Dashboard Overview</h1>
+        <p id="roleBadge" class="text-xs text-zinc-500">Loading role...</p>
+      </div>
+      <button onclick="exportCSV()" class="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-md text-sm font-semibold hover:bg-zinc-200">
+        <iconify-icon icon="solar:file-download-linear"></iconify-icon> Export Report
+      </button>
+    </header>
+
+    <div class="flex-1 p-4 sm:p-8 overflow-y-auto">
+
+      <section id="tab-dashboard" class="tab-section">
+        <div class="mb-8">
+          <h2 id="headline" class="text-2xl font-semibold tracking-tighter">Company Performance</h2>
+          <p id="subheadline" class="text-sm text-zinc-400 mt-1">Live CRM metrics across your sales system.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Total Revenue</p><h3 id="totalRevenue" class="text-3xl font-semibold mt-3">$0</h3></div>
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Calls / Follow-ups</p><h3 id="totalCalls" class="text-3xl font-semibold mt-3">0</h3></div>
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Appointments</p><h3 id="totalAppts" class="text-3xl font-semibold mt-3">0</h3></div>
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Deals Closed</p><h3 id="totalDeals" class="text-3xl font-semibold mt-3">0</h3></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          <div class="glass-card rounded-xl p-6 lg:col-span-2">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-base font-semibold">Recent Activity</h3>
+              <input id="searchInput" oninput="renderActivities()" placeholder="Search client, service, rep..." class="bg-black/50 border border-zinc-800 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 w-full max-w-xs">
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left">
+                <thead><tr class="border-b border-zinc-800/60">
+                  <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Client</th>
+                  <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Activity</th>
+                  <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Amount</th>
+                  <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Rep</th>
+                  <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Date</th>
+                </tr></thead>
+                <tbody id="activityTable" class="divide-y divide-zinc-800/40"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="glass-card rounded-xl p-6">
+            <h3 class="text-base font-semibold mb-6">Log Activity</h3>
+            <form onsubmit="logActivity(event)" class="space-y-4">
+              <select id="activityType" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
+                <option>Deal Closed</option><option>Appointment Set</option><option>Discovery Call</option><option>Follow-up</option><option>Cold Call</option><option>Closed Lost</option>
+              </select>
+              <input id="clientName" required placeholder="Business / Client" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
+              <input id="dealValue" type="number" value="0" min="0" step="0.01" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
+              <input id="serviceSold" placeholder="Website + AI Agent" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
+              <textarea id="notes" rows="3" placeholder="Notes" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500"></textarea>
+              <button class="w-full bg-white text-black font-semibold text-sm py-3 rounded-lg hover:bg-zinc-200">Save Activity</button>
+              <p id="saveMessage" class="text-xs text-zinc-400"></p>
+            </form>
+          </div>
+        </div>
+
+        <div id="adminDashboardCards" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div id="leaderboardCard" class="glass-card rounded-xl p-6">
+            <h3 class="text-base font-semibold mb-4">Rep Leaderboard</h3>
+            <div id="leaderboard" class="space-y-3"></div>
+          </div>
+
+          <div id="teamCard" class="glass-card rounded-xl p-6 lg:col-span-2">
+            <h3 class="text-base font-semibold mb-4">Team / Operator Tracking</h3>
+            <div id="teamList" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-team" class="tab-section hidden">
+        <div class="mb-8">
+          <h2 class="text-2xl font-semibold tracking-tighter">Team / Reps</h2>
+          <p class="text-sm text-zinc-400 mt-1">Admin view of sales reps, operators, and activity.</p>
+        </div>
+        <div class="glass-card rounded-xl p-6">
+          <div id="teamTabList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+      </section>
+
+      <section id="tab-analytics" class="tab-section hidden">
+        <div class="mb-8">
+          <h2 class="text-2xl font-semibold tracking-tighter">Analytics</h2>
+          <p class="text-sm text-zinc-400 mt-1">Performance breakdown across calls, appointments, and revenue.</p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Close Rate</p><h3 id="closeRate" class="text-3xl font-semibold mt-3">0%</h3></div>
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Average Deal</p><h3 id="avgDeal" class="text-3xl font-semibold mt-3">$0</h3></div>
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Closed Lost</p><h3 id="lostDeals" class="text-3xl font-semibold mt-3">0</h3></div>
+        </div>
+        <div class="glass-card rounded-xl p-6">
+          <h3 class="text-base font-semibold mb-4">Activity Breakdown</h3>
+          <div id="activityBreakdown" class="space-y-4"></div>
+        </div>
+      </section>
+
+      <section id="tab-pricing" class="tab-section hidden">
+        <div class="mb-8">
+          <h2 class="text-2xl font-semibold tracking-tighter">Pricing / Offer Builder</h2>
+          <p class="text-sm text-zinc-400 mt-1">Choose services, add upgrades, filter by budget, and generate a stronger close-ready package.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div class="lg:col-span-2 space-y-6">
+            <div class="glass-card rounded-xl p-6">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <input id="pricingSearch" oninput="renderPricing()" placeholder="Search service..." class="bg-black/50 border border-zinc-800 rounded-lg px-3 py-3 text-sm outline-none focus:border-blue-500">
+
+                <select id="categoryFilter" onchange="renderPricing()" class="bg-black/50 border border-zinc-800 rounded-lg px-3 py-3 text-sm outline-none focus:border-blue-500">
+                  <option value="all">All Categories</option>
+                  <option value="Website">Website</option>
+                  <option value="AI">AI Systems</option>
+                  <option value="Automation">Automation / CRM</option>
+                  <option value="Media">Content / Media</option>
+                  <option value="Ads">Marketing / Ads</option>
+                  <option value="SEO">SEO</option>
+                  <option value="Backend">Infrastructure</option>
+                  <option value="Business">Business Systems</option>
+                </select>
+
+                <input id="budgetFilter" oninput="renderPricing(); buildBudgetOffers();" type="number" placeholder="Client budget e.g. 2000" class="bg-black/50 border border-zinc-800 rounded-lg px-3 py-3 text-sm outline-none focus:border-blue-500">
+              </div>
+
+              <div id="pricingList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
+
+            <div class="glass-card rounded-xl p-6">
+              <h3 class="text-base font-semibold mb-4">Budget-Friendly Offers</h3>
+              <div id="budgetOffers" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
+          </div>
+
+          <div class="space-y-6">
+            <div class="glass-card rounded-xl p-6">
+              <h3 class="text-base font-semibold mb-2">Selected Estimate</h3>
+              <p class="text-xs text-zinc-500 mb-4">Use starting setup for budget fit. Use max/custom range to upsell based on complexity.</p>
+              <div id="selectedServices" class="space-y-3"></div>
+
+              <div class="border-t border-zinc-800 mt-5 pt-5 space-y-2">
+                <div class="flex justify-between text-sm text-zinc-400">
+                  <span>Starting Setup</span>
+                  <span id="setupTotal">$0</span>
+                </div>
+                <div class="flex justify-between text-sm text-zinc-400">
+                  <span>Custom / Max Potential</span>
+                  <span id="maxEstimate">$0</span>
+                </div>
+                <div class="flex justify-between text-sm text-zinc-400">
+                  <span>Optional Monthly Add-On</span>
+                  <span id="monthlyTotal">$0/mo</span>
+                </div>
+              </div>
+
+              <button onclick="clearEstimate()" class="mt-5 w-full bg-zinc-900 border border-zinc-800 rounded-lg py-3 text-sm hover:bg-zinc-800">
+                Clear Estimate
+              </button>
+            </div>
+
+            <div class="glass-card rounded-xl p-6">
+              <h3 class="text-base font-semibold mb-4">ALMA Offer Analysis</h3>
+
+              <textarea id="clientNeeds" rows="6" placeholder="Example: Client is a chiropractor. Needs more booked appointments, better website, follow-up system, and has a $2,000 budget." class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500"></textarea>
+
+              <button onclick="generateOfferAnalysis()" class="mt-4 w-full bg-white text-black font-semibold text-sm py-3 rounded-lg hover:bg-zinc-200">
+                Generate Better Offer
+              </button>
+
+              <div id="aiOfferOutput" class="mt-5 text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-calls" class="tab-section hidden">
+        <div class="mb-8">
+          <h2 class="text-2xl font-semibold tracking-tighter">Call Logs</h2>
+          <p class="text-sm text-zinc-400 mt-1">Cold calls, follow-ups, and discovery calls.</p>
+        </div>
+        <div class="glass-card rounded-xl p-6 overflow-x-auto">
+          <table class="w-full text-left">
+            <thead><tr class="border-b border-zinc-800/60">
+              <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Client</th>
+              <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Call Type</th>
+              <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Rep</th>
+              <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Notes</th>
+              <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Date</th>
+            </tr></thead>
+            <tbody id="callLogsTable" class="divide-y divide-zinc-800/40"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="tab-deals" class="tab-section hidden">
+        <div class="mb-8">
+          <h2 class="text-2xl font-semibold tracking-tighter">Deals Closed</h2>
+          <p class="text-sm text-zinc-400 mt-1">Closed revenue and services sold.</p>
+        </div>
+        <div class="glass-card rounded-xl p-6 overflow-x-auto">
+          <table class="w-full text-left">
+            <thead><tr class="border-b border-zinc-800/60">
+              <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Client</th>
+              <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Service</th>
+              <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Amount</th>
+              <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Rep</th>
+              <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Date</th>
+            </tr></thead>
+            <tbody id="dealsTable" class="divide-y divide-zinc-800/40"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+<script>
+const supabaseClient = supabase.createClient(
+  "https://qagfyyqfzhczoyhuihiv.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhZ2Z5eXFmemhjem95aHVpaGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mjc1MDIsImV4cCI6MjA5MzQwMzUwMn0.Idn8QeB0RKhgB2FB9jft7Gtp164S7aeSy3hRYSOMFVE"
+);
+
+let currentUser = null, currentRole = "sales_rep", currentProfile = null, activities = [];
+let selectedOffer = [];
+
+const serviceCatalog = [
+  {category:"Website", name:"3-Page Website", low:500, high:900, monthly:150, note:"Best entry offer for small businesses that need a clean online presence fast."},
+  {category:"Website", name:"5–10 Page Website", low:1500, high:3500, monthly:250, note:"Best for businesses that need authority pages, service pages, and a stronger brand presentation."},
+  {category:"Website", name:"Landing Page Funnel", low:400, high:1000, monthly:100, note:"Best for one offer, ads, lead capture, and fast conversion testing."},
+  {category:"Website", name:"Full Sales Funnel", low:1500, high:4000, monthly:300, note:"Best for multi-step conversion flow, lead magnets, upsells, booking, and follow-up."},
+  {category:"Website", name:"E-Commerce Store", low:1500, high:4500, monthly:250, note:"Best for product brands that need checkout, product pages, and conversion structure."},
+  {category:"Website", name:"Website Redesign", low:800, high:2500, monthly:200, note:"Best for outdated websites that need better trust, design, mobile layout, and conversions."},
+
+  {category:"AI", name:"AI Chatbot Basic", low:300, high:700, monthly:150, note:"Basic website assistant for FAQs, lead capture, and client questions."},
+  {category:"AI", name:"Custom Trained AI Chatbot", low:800, high:2000, monthly:300, note:"Trained on business-specific services, offers, FAQs, and client objections."},
+  {category:"AI", name:"AI Lead Capture System", low:500, high:1500, monthly:250, note:"Captures prospect info and routes it into follow-up or CRM."},
+  {category:"AI", name:"AI Booking System", low:800, high:2000, monthly:300, note:"Helps book appointments, consultations, or service calls automatically."},
+  {category:"AI", name:"AI Sales Assistant", low:1000, high:3000, monthly:400, note:"Scripted AI flows to qualify leads, answer objections, and support sales conversations."},
+  {category:"AI", name:"AI Voice Agent", low:1500, high:4000, monthly:500, note:"Voice-based agent for answering calls, qualifying leads, and appointment support."},
+  {category:"AI", name:"Multi-Channel AI System", low:2500, high:7500, monthly:750, note:"Web + SMS + voice + email AI system for full lead response coverage."},
+
+  {category:"Automation", name:"Basic CRM Setup", low:300, high:800, monthly:100, note:"Simple CRM pipeline to organize leads, calls, and follow-ups."},
+  {category:"Automation", name:"CRM Pipeline Build", low:800, high:2000, monthly:250, note:"Custom pipeline stages, statuses, reps, follow-ups, and tracking."},
+  {category:"Automation", name:"Email Automation Flows", low:500, high:1500, monthly:200, note:"Automated email follow-ups for leads, booked calls, and clients."},
+  {category:"Automation", name:"SMS Automation Flows", low:500, high:1500, monthly:200, note:"Automated text follow-ups for missed leads, reminders, and reactivation."},
+  {category:"Automation", name:"Missed Call Text-Back System", low:300, high:800, monthly:150, note:"Instant text response when the business misses a call."},
+  {category:"Automation", name:"Sales Pipeline Automation", low:1000, high:3000, monthly:300, note:"Automates lead movement, rep tasks, reminders, and conversion steps."},
+
+  {category:"Media", name:"Monthly Content Package", low:800, high:2500, monthly:1000, note:"Short-form content, graphics, captions, and monthly posting support."},
+  {category:"Media", name:"Ad Creative Package", low:300, high:1500, monthly:300, note:"Static or video ad creatives for campaigns, offers, and retargeting."},
+  {category:"Media", name:"Brand Shoot Local", low:500, high:2000, monthly:0, note:"Local photo/video shoot for brand authority and content library."},
+  {category:"Media", name:"AI Voiceovers", low:100, high:500, monthly:0, note:"Voiceover assets for ads, VSLs, explainers, and social content."},
+  {category:"Media", name:"Voice Cloning", low:300, high:1000, monthly:100, note:"Custom voice clone setup for consistent AI voice content."},
+
+  {category:"Ads", name:"Facebook / Instagram Ad Setup", low:500, high:1500, monthly:1000, note:"Initial campaign setup, targeting, copy, and creative structure."},
+  {category:"Ads", name:"Google Ads Setup", low:500, high:1500, monthly:1000, note:"Search campaign setup for high-intent leads."},
+  {category:"Ads", name:"Full Campaign Setup", low:1500, high:4000, monthly:1500, note:"Full ad campaign architecture across funnel, creative, tracking, and launch."},
+  {category:"Ads", name:"Retargeting Setup", low:300, high:1000, monthly:300, note:"Retargeting visitors, video viewers, leads, and abandoned prospects."},
+
+  {category:"SEO", name:"SEO Audit", low:300, high:800, monthly:0, note:"Finds website, ranking, and local visibility issues."},
+  {category:"SEO", name:"On-Page SEO Setup", low:500, high:1500, monthly:250, note:"Titles, meta, structure, keyword placement, and page optimization."},
+  {category:"SEO", name:"Local SEO", low:500, high:2000, monthly:800, note:"Helps local businesses rank better in their city and service area."},
+  {category:"SEO", name:"Google Business Optimization", low:300, high:800, monthly:250, note:"Optimizes Google Business Profile for calls, maps, and local authority."},
+
+  {category:"Backend", name:"Supabase Setup", low:500, high:1500, monthly:150, note:"Database, auth, tables, and basic app backend setup."},
+  {category:"Backend", name:"API Development", low:1000, high:5000, monthly:300, note:"Custom API routes, integrations, and backend logic."},
+  {category:"Backend", name:"Stripe Integration", low:500, high:2000, monthly:100, note:"Payments, subscriptions, checkout, and product setup."},
+  {category:"Backend", name:"Full Backend System", low:3000, high:10000, monthly:750, note:"Full backend infrastructure for apps, portals, SaaS tools, or dashboards."},
+
+  {category:"Business", name:"Sales Dashboard", low:1500, high:4000, monthly:300, note:"Dashboard for reps, calls, deals, reporting, and team performance."},
+  {category:"Business", name:"Lead Tracking System", low:800, high:2500, monthly:250, note:"Tracks leads, sources, statuses, follow-up, and conversion."},
+  {category:"Business", name:"Referral System", low:500, high:2000, monthly:150, note:"Referral tracking, payouts, forms, and partner workflow."},
+  {category:"Business", name:"Affiliate System", low:500, high:2000, monthly:150, note:"Affiliate tracking and payout structure for partners or creators."}
+];
+
+const serviceAddOns = {
+  "3-Page Website": [
+    { name:"Extra Page", price:100 },
+    { name:"Premium Design Upgrade", price:300 },
+    { name:"SEO Structure Setup", price:200 },
+    { name:"Copywriting", price:300 },
+    { name:"Speed Optimization", price:150 }
+  ],
+  "5–10 Page Website": [
+    { name:"Advanced UI/UX", price:500 },
+    { name:"Service Page Copywriting", price:500 },
+    { name:"Blog System", price:400 },
+    { name:"Advanced SEO Setup", price:500 },
+    { name:"AI Agent Embed", price:300 }
+  ],
+  "Landing Page Funnel": [
+    { name:"Conversion Copywriting", price:150 },
+    { name:"Advanced UI / Animations", price:200 },
+    { name:"Mobile Optimization", price:150 },
+    { name:"A/B Testing Setup", price:250 },
+    { name:"Lead Magnet Section", price:200 }
+  ],
+  "Full Sales Funnel": [
+    { name:"Upsell / Downsell Pages", price:600 },
+    { name:"Email Follow-Up Sequence", price:500 },
+    { name:"SMS Follow-Up Sequence", price:500 },
+    { name:"Stripe Checkout", price:500 },
+    { name:"Analytics Tracking", price:300 }
+  ],
+  "E-Commerce Store": [
+    { name:"Extra Product Pages", price:300 },
+    { name:"Checkout Optimization", price:400 },
+    { name:"Upsell System", price:500 },
+    { name:"Email Cart Recovery", price:500 },
+    { name:"Product Copywriting", price:300 }
+  ],
+  "Website Redesign": [
+    { name:"Brand Refresh", price:500 },
+    { name:"Mobile Conversion Upgrade", price:300 },
+    { name:"SEO Cleanup", price:300 },
+    { name:"New Copywriting", price:500 }
+  ],
+  "AI Chatbot Basic": [
+    { name:"Lead Capture Upgrade", price:200 },
+    { name:"FAQ Expansion", price:150 },
+    { name:"Website Embed Styling", price:150 }
+  ],
+  "Custom Trained AI Chatbot": [
+    { name:"Custom Knowledge Base", price:500 },
+    { name:"CRM Integration", price:400 },
+    { name:"Appointment Flow", price:300 },
+    { name:"Objection Handling Scripts", price:250 }
+  ],
+  "AI Lead Capture System": [
+    { name:"CRM Routing", price:300 },
+    { name:"SMS Notification", price:250 },
+    { name:"Email Notification", price:200 },
+    { name:"Lead Scoring", price:350 }
+  ],
+  "AI Booking System": [
+    { name:"Calendly Integration", price:300 },
+    { name:"Reminder Texts", price:300 },
+    { name:"No-Show Follow-Up", price:250 }
+  ],
+  "AI Sales Assistant": [
+    { name:"Custom Sales Scripts", price:400 },
+    { name:"Objection Handling", price:300 },
+    { name:"CRM Logging", price:400 },
+    { name:"Follow-Up Sequences", price:500 }
+  ],
+  "AI Voice Agent": [
+    { name:"Custom Voice Clone", price:500 },
+    { name:"Call Scripts + Flows", price:300 },
+    { name:"CRM Integration", price:400 },
+    { name:"Missed Call Routing", price:300 }
+  ],
+  "Multi-Channel AI System": [
+    { name:"Voice Channel", price:1000 },
+    { name:"SMS Channel", price:700 },
+    { name:"Email Channel", price:700 },
+    { name:"CRM Integration", price:800 },
+    { name:"Analytics Dashboard", price:1000 }
+  ],
+  "Basic CRM Setup": [
+    { name:"Custom Pipeline", price:300 },
+    { name:"Rep Assignment", price:200 },
+    { name:"Lead Status Automation", price:250 }
+  ],
+  "CRM Pipeline Build": [
+    { name:"Advanced Stages", price:300 },
+    { name:"Task Automation", price:400 },
+    { name:"Reporting Views", price:400 },
+    { name:"Sales Rep Permissions", price:300 }
+  ],
+  "Email Automation Flows": [
+    { name:"3 Email Sequence", price:300 },
+    { name:"7 Email Sequence", price:700 },
+    { name:"Lead Magnet Delivery", price:250 }
+  ],
+  "SMS Automation Flows": [
+    { name:"3 Text Sequence", price:300 },
+    { name:"Appointment Reminders", price:250 },
+    { name:"Reactivation Campaign", price:400 }
+  ],
+  "Missed Call Text-Back System": [
+    { name:"Custom Text Copy", price:100 },
+    { name:"CRM Logging", price:250 },
+    { name:"Follow-Up Sequence", price:300 }
+  ],
+  "Sales Pipeline Automation": [
+    { name:"Rep Notifications", price:300 },
+    { name:"Deal Stage Automation", price:500 },
+    { name:"Close/Lost Tracking", price:300 }
+  ],
+  "Monthly Content Package": [
+    { name:"Extra Reels", price:250 },
+    { name:"Story Graphics", price:150 },
+    { name:"Monthly Strategy Call", price:300 },
+    { name:"Posting Management", price:300 }
+  ],
+  "Ad Creative Package": [
+    { name:"Extra Static Ads", price:150 },
+    { name:"Video Ad Variant", price:300 },
+    { name:"Hook Testing Pack", price:250 }
+  ],
+  "Facebook / Instagram Ad Setup": [
+    { name:"Retargeting Audience", price:300 },
+    { name:"Conversion Tracking", price:300 },
+    { name:"Extra Campaign", price:500 }
+  ],
+  "Google Ads Setup": [
+    { name:"Keyword Expansion", price:300 },
+    { name:"Landing Page Alignment", price:400 },
+    { name:"Conversion Tracking", price:300 }
+  ],
+  "Local SEO": [
+    { name:"GBP Optimization", price:300 },
+    { name:"Citation Setup", price:400 },
+    { name:"Review Strategy", price:250 }
+  ],
+  "Sales Dashboard": [
+    { name:"Admin View", price:500 },
+    { name:"Sales Rep View", price:500 },
+    { name:"CSV Export", price:200 },
+    { name:"AI Offer Builder", price:700 }
+  ]
+};
+
+function isAdminView(){ return currentRole === "admin" || currentRole === "growth_operator"; }
+function money(n){ return new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0}).format(Number(n||0)); }
+function safe(v){ return String(v ?? "").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
+
+function showTab(tab, btn){
+  if(tab === "team" && !isAdminView()){
+    alert("Team / Reps is only available for admin and growth operators.");
+    return;
+  }
+
+  document.querySelectorAll(".tab-section").forEach(s => s.classList.add("hidden"));
+  document.getElementById(`tab-${tab}`).classList.remove("hidden");
+
+  document.querySelectorAll(".tab-btn").forEach(b => {
+    b.classList.remove("tab-active", "text-white", "font-medium");
+    b.classList.add("text-zinc-400");
+  });
+
+  btn.classList.add("tab-active", "text-white", "font-medium");
+  btn.classList.remove("text-zinc-400");
+
+  const titles = {
+    dashboard: "Dashboard Overview",
+    team: "Team / Reps",
+    analytics: "Analytics",
+    pricing: "Pricing / Offer Builder",
+    calls: "Call Logs",
+    deals: "Deals Closed"
+  };
+
+  pageTitle.innerText = titles[tab] || "Dashboard Overview";
+}
+
+async function init(){
+  const { data } = await supabaseClient.auth.getSession();
+  if(!data.session){ window.location.href = "index.html"; return; }
+
+  currentUser = data.session.user;
+
+  const { data: profile } = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("id", currentUser.id)
+    .maybeSingle();
+
+  currentProfile = profile;
+  currentRole = profile?.role || "sales_rep";
+
+  userName.innerText = profile?.full_name || currentUser.email;
+  userEmail.innerText = currentUser.email;
+  roleBadge.innerText = isAdminView() ? "Admin / Growth Operator View" : "Sales Rep View";
+
+  if(!isAdminView()){
+    headline.innerText = "My Performance";
+    subheadline.innerText = "Your personal logged activity and sales progress.";
+    adminDashboardCards.style.display = "none";
+    teamNavBtn.style.display = "none";
+  }
+
+  await loadActivities();
+  renderPricing();
+  renderSelectedOffer();
+  buildBudgetOffers();
+}
+
+async function loadActivities(){
+  let query = supabaseClient.from("activities").select("*").order("created_at",{ascending:false});
+  if(!isAdminView()) query = query.eq("user_id", currentUser.id);
+
+  const { data, error } = await query;
+  if(error){ alert(error.message); return; }
+
+  activities = data || [];
+  renderDashboard();
+}
+
+async function logActivity(e){
+  e.preventDefault();
+
+  const { error } = await supabaseClient.from("activities").insert([{
+    user_id: currentUser.id,
+    rep_name: currentProfile?.full_name || currentUser.email,
+    activity_type: activityType.value,
+    client_name: clientName.value.trim(),
+    deal_value: Number(dealValue.value || 0),
+    service_sold: serviceSold.value.trim(),
+    status: activityType.value,
+    notes: notes.value.trim()
+  }]);
+
+  if(error){ saveMessage.innerText = error.message; return; }
+
+  saveMessage.innerText = "Saved.";
+  clientName.value=""; dealValue.value="0"; serviceSold.value=""; notes.value="";
+  await loadActivities();
+}
+
+function renderDashboard(){
+  const revenue = activities.filter(a=>a.activity_type==="Deal Closed").reduce((s,a)=>s+Number(a.deal_value||0),0);
+  totalRevenue.innerText = money(revenue);
+  totalCalls.innerText = activities.filter(a=>["Cold Call","Follow-up","Discovery Call"].includes(a.activity_type)).length;
+  totalAppts.innerText = activities.filter(a=>a.activity_type==="Appointment Set").length;
+  totalDeals.innerText = activities.filter(a=>a.activity_type==="Deal Closed").length;
+
+  renderActivities();
+  renderLeaderboard();
+  renderTeam();
+  renderAnalytics();
+  renderCalls();
+  renderDeals();
+}
+
+function renderActivities(){
+  const q = (searchInput.value || "").toLowerCase();
+  const filtered = activities.filter(a => [a.client_name,a.service_sold,a.rep_name,a.activity_type,a.notes].join(" ").toLowerCase().includes(q));
+
+  activityTable.innerHTML = filtered.length ? filtered.map(a=>`
+    <tr class="hover:bg-zinc-900/40">
+      <td class="px-3 py-3"><p class="text-sm font-medium">${safe(a.client_name||"No client")}</p><p class="text-xs text-zinc-500">${safe(a.service_sold||"")}</p></td>
+      <td class="px-3 py-3 text-sm text-zinc-300">${safe(a.activity_type)}</td>
+      <td class="px-3 py-3 text-sm font-medium">${money(a.deal_value)}</td>
+      <td class="px-3 py-3 text-sm text-zinc-400">${safe(a.rep_name)}</td>
+      <td class="px-3 py-3 text-xs text-zinc-500">${new Date(a.created_at).toLocaleString()}</td>
+    </tr>`).join("") : `<tr><td colspan="5" class="px-3 py-8 text-sm text-zinc-500 text-center">No activity yet.</td></tr>`;
+}
+
+function renderLeaderboard(){
+  if(!isAdminView()) return;
+
+  const map = {};
+  activities.forEach(a=>{
+    const rep=a.rep_name||"Unknown";
+    if(!map[rep]) map[rep]={revenue:0,deals:0,actions:0};
+    map[rep].actions++;
+    if(a.activity_type==="Deal Closed"){ map[rep].revenue+=Number(a.deal_value||0); map[rep].deals++; }
+  });
+
+  const rows = Object.entries(map).sort((a,b)=>b[1].revenue-a[1].revenue);
+  leaderboard.innerHTML = rows.length ? rows.map(([rep,s],i)=>`
+    <div class="flex items-center gap-3 p-3 rounded-lg bg-black/30 border border-zinc-800/50">
+      <div class="w-7 h-7 rounded-full bg-zinc-900 flex items-center justify-center text-xs">${i+1}</div>
+      <div class="flex-1"><p class="text-sm font-medium">${safe(rep)}</p><p class="text-xs text-zinc-500">${s.deals} deals • ${s.actions} actions</p></div>
+      <p class="text-sm font-semibold">${money(s.revenue)}</p>
+    </div>`).join("") : `<p class="text-sm text-zinc-500">No activity yet.</p>`;
+}
+
+function renderTeam(){
+  if(!isAdminView()) return;
+
+  const map = {};
+  activities.forEach(a=>{
+    const rep=a.rep_name||"Unknown";
+    if(!map[rep]) map[rep]={actions:0,revenue:0,deals:0,calls:0,appts:0,last:a.created_at};
+    map[rep].actions++;
+    map[rep].last=a.created_at;
+    if(a.activity_type==="Deal Closed"){ map[rep].deals++; map[rep].revenue+=Number(a.deal_value||0); }
+    if(["Cold Call","Follow-up","Discovery Call"].includes(a.activity_type)) map[rep].calls++;
+    if(a.activity_type==="Appointment Set") map[rep].appts++;
+  });
+
+  const html = Object.entries(map).map(([rep,s])=>`
+    <div class="p-4 rounded-xl bg-black/30 border border-zinc-800/50">
+      <p class="font-medium">${safe(rep)}</p>
+      <p class="text-sm text-zinc-500">${s.actions} logged activities</p>
+      <div class="grid grid-cols-2 gap-3 mt-4 text-sm">
+        <div><p class="text-xs text-zinc-500">Revenue</p><p class="font-semibold">${money(s.revenue)}</p></div>
+        <div><p class="text-xs text-zinc-500">Deals</p><p class="font-semibold">${s.deals}</p></div>
+        <div><p class="text-xs text-zinc-500">Calls</p><p class="font-semibold">${s.calls}</p></div>
+        <div><p class="text-xs text-zinc-500">Appointments</p><p class="font-semibold">${s.appts}</p></div>
+      </div>
+      <p class="text-xs text-zinc-600 mt-4">Last: ${new Date(s.last).toLocaleString()}</p>
+    </div>`).join("") || `<p class="text-sm text-zinc-500">No team data yet.</p>`;
+
+  teamList.innerHTML = html;
+  teamTabList.innerHTML = html;
+}
+
+function renderAnalytics(){
+  const deals = activities.filter(a=>a.activity_type==="Deal Closed");
+  const lost = activities.filter(a=>a.activity_type==="Closed Lost");
+  const revenue = deals.reduce((s,a)=>s+Number(a.deal_value||0),0);
+  const opportunities = deals.length + lost.length;
+
+  closeRate.innerText = opportunities ? Math.round((deals.length / opportunities) * 100) + "%" : "0%";
+  avgDeal.innerText = deals.length ? money(revenue / deals.length) : "$0";
+  lostDeals.innerText = lost.length;
+
+  const types = ["Deal Closed","Appointment Set","Discovery Call","Follow-up","Cold Call","Closed Lost"];
+  activityBreakdown.innerHTML = types.map(type=>{
+    const count = activities.filter(a=>a.activity_type===type).length;
+    const percent = activities.length ? Math.round((count / activities.length) * 100) : 0;
+    return `
+      <div>
+        <div class="flex justify-between text-sm mb-1">
+          <span>${type}</span><span class="text-zinc-500">${count} • ${percent}%</span>
+        </div>
+        <div class="h-2 bg-zinc-900 rounded-full overflow-hidden">
+          <div class="h-full bg-blue-500 rounded-full" style="width:${percent}%"></div>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+function renderUpsells(service){
+  const addons = serviceAddOns[service.name] || [];
+  if(!addons.length) return `<p class="text-xs text-zinc-600 mt-3">No preset add-ons. Custom quote if needed.</p>`;
+
+  return `
+    <p class="text-xs text-zinc-500 mt-3 mb-1">Common Upgrades:</p>
+    <div class="space-y-1">
+      ${addons.slice(0,4).map(a => `
+        <div class="flex justify-between text-xs text-zinc-400">
+          <span>+ ${safe(a.name)}</span>
+          <span>${money(a.price)}</span>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+function addServiceWithAddOns(serviceIndex, addOnIndexes){
+  const service = serviceCatalog[serviceIndex];
+  const addOns = (serviceAddOns[service.name] || []).filter((a, i) => addOnIndexes.includes(i));
+  selectedOffer.push({...service, selectedAddOns:addOns});
+  renderSelectedOffer();
+}
+
+function renderPricing(){
+  const search = (pricingSearch?.value || "").toLowerCase();
+  const category = categoryFilter?.value || "all";
+  const budget = Number(budgetFilter?.value || 0);
+
+  const filtered = serviceCatalog.filter(s => {
+    const matchesSearch = s.name.toLowerCase().includes(search) || s.category.toLowerCase().includes(search);
+    const matchesCategory = category === "all" || s.category === category;
+    const matchesBudget = !budget || s.low <= budget;
+    return matchesSearch && matchesCategory && matchesBudget;
+  });
+
+  pricingList.innerHTML = filtered.map((s) => {
+    const idx = serviceCatalog.indexOf(s);
+    return `
+    <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4 hover:bg-zinc-900/40">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex-1">
+          <p class="text-xs text-blue-400 uppercase tracking-widest">${safe(s.category)}</p>
+          <h4 class="font-medium mt-1">${safe(s.name)}</h4>
+
+          <p class="text-sm text-zinc-400 mt-2">
+            <span class="text-white font-medium">Starting:</span> ${money(s.low)}
+            <span class="text-zinc-600">→ custom up to ${money(s.high)}</span>
+          </p>
+
+          <p class="text-xs text-zinc-600 mt-1">
+            ${s.monthly ? "Optional Monthly: " + money(s.monthly) + "/mo" : "No monthly required"}
+          </p>
+
+          <p class="text-xs text-zinc-500 mt-3 leading-relaxed">${safe(s.note || "")}</p>
+          ${renderUpsells(s)}
+        </div>
+
+        <button onclick="addServiceWithAddOns(${idx}, [])" class="bg-white text-black px-3 py-2 rounded-lg text-xs font-semibold hover:bg-zinc-200">
+          Add
+        </button>
+      </div>
+    </div>
+  `}).join("") || `<p class="text-sm text-zinc-500">No services found under this filter.</p>`;
+}
+
+function addService(index){
+  selectedOffer.push({...serviceCatalog[index], selectedAddOns:[]});
+  renderSelectedOffer();
+}
+
+function removeService(index){
+  selectedOffer.splice(index, 1);
+  renderSelectedOffer();
+}
+
+function clearEstimate(){
+  selectedOffer = [];
+  renderSelectedOffer();
+}
+
+function renderSelectedOffer(){
+  const setup = selectedOffer.reduce((sum, s) => sum + s.low + (s.selectedAddOns || []).reduce((a,b)=>a+b.price,0), 0);
+  const max = selectedOffer.reduce((sum, s) => sum + s.high, 0);
+  const monthly = selectedOffer.reduce((sum, s) => sum + Number(s.monthly || 0), 0);
+
+  selectedServices.innerHTML = selectedOffer.length ? selectedOffer.map((s, i) => `
+    <div class="p-3 rounded-lg bg-black/30 border border-zinc-800/50">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <p class="text-sm font-medium">${safe(s.name)}</p>
+          <p class="text-xs text-zinc-500">Starting ${money(s.low)} → max ${money(s.high)}</p>
+        </div>
+        <button onclick="removeService(${i})" class="text-zinc-500 hover:text-red-400">
+          <iconify-icon icon="solar:trash-bin-trash-linear"></iconify-icon>
+        </button>
+      </div>
+      ${(s.selectedAddOns || []).length ? `
+        <div class="mt-2 space-y-1">
+          ${(s.selectedAddOns || []).map(a => `<p class="text-xs text-zinc-500">+ ${safe(a.name)} — ${money(a.price)}</p>`).join("")}
+        </div>
+      ` : ""}
+    </div>
+  `).join("") : `<p class="text-sm text-zinc-500">No services selected yet.</p>`;
+
+  setupTotal.innerText = money(setup);
+  maxEstimate.innerText = money(max);
+  monthlyTotal.innerText = money(monthly) + "/mo";
+}
+
+function buildBudgetOffers(){
+  const budget = Number(budgetFilter?.value || 0);
+  if(!budget){
+    budgetOffers.innerHTML = `<p class="text-sm text-zinc-500">Enter a client budget to see offer ideas.</p>`;
+    return;
+  }
+
+  const offers = [
+    {name:"Starter Close Package", services:["Landing Page Funnel","AI Chatbot Basic","AI Lead Capture System"], pitch:"Best for getting the client online fast with a clear offer and basic AI lead capture."},
+    {name:"Local Growth Package", services:["3-Page Website","Google Business Optimization","Missed Call Text-Back System"], pitch:"Best for local businesses that need more calls, trust, and follow-up."},
+    {name:"Automation Starter", services:["Basic CRM Setup","Email Automation Flows","SMS Automation Flows"], pitch:"Best for businesses losing leads because they do not follow up fast enough."},
+    {name:"Authority Package", services:["Website Redesign","SEO Audit","Ad Creative Package"], pitch:"Best for businesses that already exist but look outdated online."},
+    {name:"AI Appointment Package", services:["Landing Page Funnel","AI Booking System","Missed Call Text-Back System"], pitch:"Best when the client wants more booked calls or appointments."}
+  ].map(pkg => {
+    const items = pkg.services.map(name => serviceCatalog.find(s => s.name === name)).filter(Boolean);
+    const total = items.reduce((sum, s) => sum + s.low, 0);
+    return {...pkg, items, total};
+  }).filter(pkg => pkg.total <= budget);
+
+  budgetOffers.innerHTML = offers.length ? offers.map(pkg => `
+    <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4">
+      <div class="flex justify-between gap-3">
+        <h4 class="font-medium">${safe(pkg.name)}</h4>
+        <span class="text-sm font-semibold">${money(pkg.total)}</span>
+      </div>
+      <p class="text-sm text-zinc-500 mt-2">${safe(pkg.pitch)}</p>
+      <div class="mt-3 space-y-1">
+        ${pkg.items.map(s => `<p class="text-xs text-zinc-400">• ${safe(s.name)}</p>`).join("")}
+      </div>
+      <button onclick='selectPackage(${JSON.stringify(pkg.items.map(s => serviceCatalog.indexOf(s)))})' class="mt-4 w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 text-xs hover:bg-zinc-800">
+        Use This Package
+      </button>
+    </div>
+  `).join("") : `<p class="text-sm text-zinc-500">No prebuilt package fits this budget. Try a higher budget or select individual services.</p>`;
+}
+
+function selectPackage(indexes){
+  selectedOffer = indexes.map(i => ({...serviceCatalog[i], selectedAddOns:[]})).filter(Boolean);
+  renderSelectedOffer();
+}
+
+async function generateOfferAnalysis(){
+  const needs = clientNeeds.value.trim();
+  const setup = selectedOffer.reduce((sum, s) => sum + s.low + (s.selectedAddOns || []).reduce((a,b)=>a+b.price,0), 0);
+  const monthly = selectedOffer.reduce((sum, s) => sum + Number(s.monthly || 0), 0);
+  const selected = selectedOffer.map(s => {
+    const addons = (s.selectedAddOns || []).map(a => `+ ${a.name}: ${money(a.price)}`).join(", ");
+    return `${s.name}: ${money(s.low)} starting, ${money(s.high)} max, ${s.monthly ? money(s.monthly)+"/mo" : "no monthly"} ${addons ? " | Add-ons: " + addons : ""}`;
+  }).join("\n");
+
+  if(!needs){
+    aiOfferOutput.innerText = "Add client needs first.";
+    return;
+  }
+
+  aiOfferOutput.innerText = "ALMA is analyzing client needs and building a better offer...";
+
+  try {
+    const res = await fetch("/api/offer-analysis", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ needs, selected, setup, monthly })
+    });
+
+    const text = await res.text();
+    let data;
+
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error("API route is not returning JSON. Check api/offer-analysis.js and redeploy Vercel.");
+    }
+
+    if(!res.ok) throw new Error(data.error || "AI analysis failed.");
+    aiOfferOutput.innerText = data.analysis || "No analysis returned.";
+  } catch(err) {
+    aiOfferOutput.innerText = err.message;
+  }
+}
+
+function renderCalls(){
+  const calls = activities.filter(a=>["Cold Call","Follow-up","Discovery Call"].includes(a.activity_type));
+  callLogsTable.innerHTML = calls.length ? calls.map(a=>`
+    <tr class="hover:bg-zinc-900/40">
+      <td class="px-3 py-3 text-sm font-medium">${safe(a.client_name||"No client")}</td>
+      <td class="px-3 py-3 text-sm text-zinc-300">${safe(a.activity_type)}</td>
+      <td class="px-3 py-3 text-sm text-zinc-400">${safe(a.rep_name)}</td>
+      <td class="px-3 py-3 text-sm text-zinc-500">${safe(a.notes||"")}</td>
+      <td class="px-3 py-3 text-xs text-zinc-500">${new Date(a.created_at).toLocaleString()}</td>
+    </tr>`).join("") : `<tr><td colspan="5" class="px-3 py-8 text-sm text-zinc-500 text-center">No call logs yet.</td></tr>`;
+}
+
+function renderDeals(){
+  const deals = activities.filter(a=>a.activity_type==="Deal Closed");
+  dealsTable.innerHTML = deals.length ? deals.map(a=>`
+    <tr class="hover:bg-zinc-900/40">
+      <td class="px-3 py-3 text-sm font-medium">${safe(a.client_name||"No client")}</td>
+      <td class="px-3 py-3 text-sm text-zinc-400">${safe(a.service_sold||"")}</td>
+      <td class="px-3 py-3 text-sm font-medium">${money(a.deal_value)}</td>
+      <td class="px-3 py-3 text-sm text-zinc-400">${safe(a.rep_name)}</td>
+      <td class="px-3 py-3 text-xs text-zinc-500">${new Date(a.created_at).toLocaleString()}</td>
+    </tr>`).join("") : `<tr><td colspan="5" class="px-3 py-8 text-sm text-zinc-500 text-center">No deals closed yet.</td></tr>`;
+}
+
+function exportCSV(){
+  const headers=["created_at","rep_name","activity_type","client_name","deal_value","service_sold","status","notes"];
+  const csv=[headers.join(","),...activities.map(a=>headers.map(h=>`"${String(a[h]??"").replaceAll('"','""')}"`).join(","))].join("\n");
+  const blob=new Blob([csv],{type:"text/csv"}), url=URL.createObjectURL(blob), a=document.createElement("a");
+  a.href=url; a.download="salesos-activity.csv"; a.click(); URL.revokeObjectURL(url);
+}
+
+async function logout(){
+  await supabaseClient.auth.signOut();
+  window.location.href="index.html";
+}
+
+init();
+</script>
+</body>
+</html>
   </style>
 </head>
 
