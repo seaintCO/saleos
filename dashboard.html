@@ -3,18 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SalesOS Dashboard</title>
+  <title>SalesOS Command Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     body { font-family: Inter, sans-serif; background:#000; }
     ::-webkit-scrollbar{width:6px;height:6px}
     ::-webkit-scrollbar-thumb{background:#27272a;border-radius:10px}
-    .glass-card{background:rgba(24,24,27,.45);backdrop-filter:blur(12px);border:1px solid rgba(63,63,70,.45);}
-    .tab-active{background:rgba(24,24,27,.8);color:#fff;border:1px solid rgba(63,63,70,.5);}
+    .glass-card{background:rgba(24,24,27,.48);backdrop-filter:blur(14px);border:1px solid rgba(63,63,70,.48);}
+    .tab-active{background:rgba(24,24,27,.86);color:#fff;border:1px solid rgba(63,63,70,.55);}
+    .soft-input{background:rgba(0,0,0,.45);border:1px solid rgba(39,39,42,.9);border-radius:.75rem;padding:.75rem .85rem;font-size:.875rem;outline:none;width:100%;}
+    .soft-input:focus{border-color:#3b82f6;}
+    .pill{border:1px solid rgba(63,63,70,.55);background:rgba(0,0,0,.35);border-radius:999px;padding:.35rem .7rem;font-size:.72rem;color:#a1a1aa}
+    .priority-high{border-color:rgba(248,113,113,.55);color:#fecaca;background:rgba(127,29,29,.25)}
+    .priority-medium{border-color:rgba(250,204,21,.55);color:#fef08a;background:rgba(113,63,18,.25)}
+    .priority-low{border-color:rgba(96,165,250,.55);color:#bfdbfe;background:rgba(30,58,138,.22)}
+    .status-open{color:#bfdbfe}
+    .status-progress{color:#fef08a}
+    .status-done{color:#bbf7d0}
+    .mini-kpi{background:rgba(0,0,0,.28);border:1px solid rgba(39,39,42,.75);border-radius:1rem;padding:1rem}
   </style>
 </head>
 
@@ -29,7 +38,7 @@
       </span>
     </div>
 
-    <nav class="flex-1 py-4 px-3 space-y-1">
+    <nav class="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
       <p class="px-3 text-xs text-zinc-500 uppercase tracking-widest mb-2 mt-4">Overview</p>
 
       <button onclick="showTab('dashboard', this)" class="tab-btn tab-active w-full flex items-center gap-3 px-3 py-2 rounded-md font-medium text-sm">
@@ -44,9 +53,18 @@
         <iconify-icon icon="solar:chart-2-linear" class="text-lg"></iconify-icon> Analytics
       </button>
 
+      <button onclick="showTab('repnotes', this)" class="tab-btn w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
+        <iconify-icon icon="solar:notes-linear" class="text-lg"></iconify-icon> Rep Notes
+      </button>
+
+      <p class="px-3 text-xs text-zinc-500 uppercase tracking-widest mb-2 mt-6 admin-only-nav">Admin</p>
 
       <button onclick="showTab('adminops', this)" class="tab-btn admin-only-nav w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
         <iconify-icon icon="solar:server-square-cloud-linear" class="text-lg"></iconify-icon> Admin Ops
+      </button>
+
+      <button onclick="showTab('manual', this)" class="tab-btn admin-only-nav w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
+        <iconify-icon icon="solar:slider-horizontal-linear" class="text-lg"></iconify-icon> Manual Controls
       </button>
 
       <button onclick="showTab('alma', this)" class="tab-btn admin-only-nav w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
@@ -59,6 +77,10 @@
 
       <button onclick="showTab('ids', this)" class="tab-btn admin-only-nav w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
         <iconify-icon icon="solar:clipboard-check-linear" class="text-lg"></iconify-icon> IDS Meeting
+      </button>
+
+      <button onclick="showTab('calendar', this)" class="tab-btn admin-only-nav w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
+        <iconify-icon icon="solar:calendar-mark-linear" class="text-lg"></iconify-icon> Calendar / Tasks
       </button>
 
       <button onclick="showTab('pricing', this)" class="tab-btn w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
@@ -91,9 +113,14 @@
         <h1 id="pageTitle" class="text-lg font-semibold tracking-tight">Dashboard Overview</h1>
         <p id="roleBadge" class="text-xs text-zinc-500">Loading role...</p>
       </div>
-      <button onclick="exportCSV()" class="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-md text-sm font-semibold hover:bg-zinc-200">
-        <iconify-icon icon="solar:file-download-linear"></iconify-icon> Export Report
-      </button>
+      <div class="flex items-center gap-2">
+        <button onclick="exportCSV()" class="hidden sm:flex items-center gap-2 bg-zinc-900 border border-zinc-800 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-zinc-800">
+          <iconify-icon icon="solar:file-download-linear"></iconify-icon> Export
+        </button>
+        <button onclick="showQuickAdd()" class="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-md text-sm font-semibold hover:bg-zinc-200">
+          <iconify-icon icon="solar:add-circle-linear"></iconify-icon> Quick Add
+        </button>
+      </div>
     </header>
 
     <div class="flex-1 p-4 sm:p-8 overflow-y-auto">
@@ -113,9 +140,9 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           <div class="glass-card rounded-xl p-6 lg:col-span-2">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <h3 class="text-base font-semibold">Recent Activity</h3>
-              <input id="searchInput" oninput="renderActivities()" placeholder="Search client, service, rep..." class="bg-black/50 border border-zinc-800 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-500 w-full max-w-xs">
+              <input id="searchInput" oninput="renderActivities()" placeholder="Search client, service, rep..." class="soft-input sm:max-w-xs">
             </div>
             <div class="overflow-x-auto">
               <table class="w-full text-left">
@@ -134,8 +161,7 @@
           <div class="glass-card rounded-xl p-6">
             <h3 class="text-base font-semibold mb-6">Log Activity</h3>
             <form onsubmit="logActivity(event)" class="space-y-4">
-              <select id="activityType" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
-
+              <select id="activityType" class="soft-input">
                 <option>Deal Closed</option>
                 <option>Appointment Set</option>
                 <option>Discovery Call</option>
@@ -168,12 +194,11 @@
                 <option>ALMA CALL Enrollment</option>
                 <option>ALMA Dial</option>
                 <option>Rep Dial</option>
-
               </select>
-              <input id="clientName" required placeholder="Business / Client" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
-              <input id="dealValue" type="number" value="0" min="0" step="0.01" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
-              <input id="serviceSold" placeholder="Website + AI Agent" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
-              <textarea id="notes" rows="3" placeholder="Notes" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500"></textarea>
+              <input id="clientName" required placeholder="Business / Client" class="soft-input">
+              <input id="dealValue" type="number" value="0" min="0" step="0.01" class="soft-input">
+              <input id="serviceSold" placeholder="Website + AI Agent" class="soft-input">
+              <textarea id="notes" rows="3" placeholder="Notes" class="soft-input"></textarea>
               <button class="w-full bg-white text-black font-semibold text-sm py-3 rounded-lg hover:bg-zinc-200">Save Activity</button>
               <p id="saveMessage" class="text-xs text-zinc-400"></p>
             </form>
@@ -193,10 +218,10 @@
         </div>
       </section>
 
-      <section id="tab-team" class="tab-section hidden">
+      <section id="tab-team" class="tab-section hidden admin-only">
         <div class="mb-8">
           <h2 class="text-2xl font-semibold tracking-tighter">Team / Reps</h2>
-          <p class="text-sm text-zinc-400 mt-1">Admin view of sales reps, operators, and activity.</p>
+          <p class="text-sm text-zinc-400 mt-1">Admin view of sales reps, operators, notes, and activity.</p>
         </div>
         <div class="glass-card rounded-xl p-6">
           <div id="teamTabList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
@@ -219,6 +244,44 @@
         </div>
       </section>
 
+      <section id="tab-repnotes" class="tab-section hidden">
+        <div class="mb-8">
+          <h2 class="text-2xl font-semibold tracking-tighter">Rep Notes</h2>
+          <p class="text-sm text-zinc-400 mt-1">Sales reps can drop notes, questions, lead updates, objections, or client context here.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div class="glass-card rounded-xl p-6">
+            <h3 class="text-base font-semibold mb-6">Add Rep Note</h3>
+            <form onsubmit="addRepNote(event)" class="space-y-4">
+              <input id="repNoteClient" placeholder="Client / Lead name" class="soft-input">
+              <select id="repNoteType" class="soft-input">
+                <option>Lead Note</option>
+                <option>Follow-up Needed</option>
+                <option>Objection</option>
+                <option>Hot Prospect</option>
+                <option>Client Update</option>
+                <option>Internal Question</option>
+              </select>
+              <select id="repNotePriority" class="soft-input">
+                <option>Medium</option>
+                <option>High</option>
+                <option>Low</option>
+              </select>
+              <textarea id="repNoteBody" rows="5" required placeholder="Write note here..." class="soft-input"></textarea>
+              <button class="w-full bg-white text-black font-semibold text-sm py-3 rounded-lg hover:bg-zinc-200">Save Note</button>
+            </form>
+          </div>
+
+          <div class="glass-card rounded-xl p-6 lg:col-span-2">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+              <h3 class="text-base font-semibold">Notes Feed</h3>
+              <input id="repNoteSearch" oninput="renderRepNotes()" placeholder="Search notes..." class="soft-input sm:max-w-xs">
+            </div>
+            <div id="repNotesList" class="space-y-3"></div>
+          </div>
+        </div>
+      </section>
 
       <section id="tab-adminops" class="tab-section hidden admin-only">
         <div class="mb-8">
@@ -251,26 +314,72 @@
           <div class="glass-card rounded-xl p-6">
             <h3 class="text-base font-semibold mb-4">Build Completion Tracking</h3>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Scheduled</p><p id="opsBuildScheduled" class="text-2xl font-semibold mt-2">0</p></div>
-              <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Completed</p><p id="opsBuildCompleted" class="text-2xl font-semibold mt-2">0</p></div>
-              <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Completion %</p><p id="opsBuildCompletion" class="text-2xl font-semibold mt-2">0%</p></div>
+              <div class="mini-kpi"><p class="text-xs text-zinc-500">Scheduled</p><p id="opsBuildScheduled" class="text-2xl font-semibold mt-2">0</p></div>
+              <div class="mini-kpi"><p class="text-xs text-zinc-500">Completed</p><p id="opsBuildCompleted" class="text-2xl font-semibold mt-2">0</p></div>
+              <div class="mini-kpi"><p class="text-xs text-zinc-500">Completion %</p><p id="opsBuildCompletion" class="text-2xl font-semibold mt-2">0%</p></div>
             </div>
           </div>
 
           <div class="glass-card rounded-xl p-6">
             <h3 class="text-base font-semibold mb-4">Forecasting</h3>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Forecasted to Enroll</p><p id="opsForecastEnroll" class="text-2xl font-semibold mt-2">0</p></div>
-              <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Forecast Revenue</p><p id="opsForecastRevenue" class="text-2xl font-semibold mt-2">$0</p></div>
-              <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Net Enrollments</p><p id="opsNetEnrollments" class="text-2xl font-semibold mt-2">0</p></div>
+              <div class="mini-kpi"><p class="text-xs text-zinc-500">Forecasted to Enroll</p><p id="opsForecastEnroll" class="text-2xl font-semibold mt-2">0</p></div>
+              <div class="mini-kpi"><p class="text-xs text-zinc-500">Forecast Revenue</p><p id="opsForecastRevenue" class="text-2xl font-semibold mt-2">$0</p></div>
+              <div class="mini-kpi"><p class="text-xs text-zinc-500">Net Enrollments</p><p id="opsNetEnrollments" class="text-2xl font-semibold mt-2">0</p></div>
             </div>
           </div>
         </div>
 
         <div class="glass-card rounded-xl p-6">
-          <h3 class="text-base font-semibold mb-4">Type of Collections / ALMA Purchase Tracking</h3>
-          <p class="text-sm text-zinc-400 mb-4">Use the Log Activity form to enter each collection or purchase type. Later, attach Supabase columns or Google Sheets import to automate these values.</p>
-          <div id="opsCollectionTypes" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"></div>
+          <h3 class="text-base font-semibold mb-4">System Health</h3>
+          <div id="systemHealth" class="grid grid-cols-1 md:grid-cols-4 gap-3"></div>
+        </div>
+      </section>
+
+      <section id="tab-manual" class="tab-section hidden admin-only">
+        <div class="mb-8">
+          <h2 class="text-2xl font-semibold tracking-tighter">Manual Dashboard Controls</h2>
+          <p class="text-sm text-zinc-400 mt-1">Admin-only overrides for dashboard numbers. Use this when Google Sheets or Supabase is not connected yet.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div class="glass-card rounded-xl p-6 lg:col-span-2">
+            <h3 class="text-base font-semibold mb-5">Manual KPI Inputs</h3>
+            <form onsubmit="saveManualMetrics(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <input id="m_total_new_leads" type="number" placeholder="Total New Leads" class="soft-input">
+              <input id="m_total_referral_leads" type="number" placeholder="Referral Leads" class="soft-input">
+              <input id="m_website_leads" type="number" placeholder="Website Leads" class="soft-input">
+              <input id="m_ig_leads" type="number" placeholder="IG Leads" class="soft-input">
+              <input id="m_tiktok_leads" type="number" placeholder="TikTok Leads" class="soft-input">
+              <input id="m_discovery_scheduled" type="number" placeholder="Discovery Scheduled" class="soft-input">
+              <input id="m_discovery_completed" type="number" placeholder="Discovery Completed" class="soft-input">
+              <input id="m_new_enrollments" type="number" placeholder="New Enrollments" class="soft-input">
+              <input id="m_dropped_enrollments" type="number" placeholder="Dropped Enrollments" class="soft-input">
+              <input id="m_prebuild_deposits" type="number" placeholder="Pre-Build Deposits $" class="soft-input">
+              <input id="m_build_revenue" type="number" placeholder="Build Revenue $" class="soft-input">
+              <input id="m_addon_revenue" type="number" placeholder="Add-On Revenue $" class="soft-input">
+              <input id="m_build_scheduled" type="number" placeholder="Builds Scheduled" class="soft-input">
+              <input id="m_build_completed" type="number" placeholder="Builds Completed" class="soft-input">
+              <input id="m_forecast_enroll" type="number" placeholder="Forecast Enrollments" class="soft-input">
+              <input id="m_forecast_revenue" type="number" placeholder="Forecast Revenue $" class="soft-input">
+              <input id="m_alma_txt_scheduled" type="number" placeholder="ALMA TXT Scheduled" class="soft-input">
+              <input id="m_alma_txt_completed" type="number" placeholder="ALMA TXT Completed" class="soft-input">
+              <input id="m_alma_call_scheduled" type="number" placeholder="ALMA CALL Scheduled" class="soft-input">
+              <input id="m_alma_call_completed" type="number" placeholder="ALMA CALL Completed" class="soft-input">
+              <input id="m_alma_txt_enrollments" type="number" placeholder="ALMA TXT Enrollments" class="soft-input">
+              <input id="m_alma_call_enrollments" type="number" placeholder="ALMA CALL Enrollments" class="soft-input">
+              <input id="m_alma_dials" type="number" placeholder="ALMA Total Dials" class="soft-input">
+              <input id="m_alma_collections" type="number" placeholder="ALMA Collections $" class="soft-input">
+              <button class="md:col-span-3 w-full bg-white text-black font-semibold text-sm py-3 rounded-lg hover:bg-zinc-200">Save Manual Dashboard</button>
+            </form>
+          </div>
+
+          <div class="glass-card rounded-xl p-6">
+            <h3 class="text-base font-semibold mb-4">Admin Notes</h3>
+            <textarea id="adminManualNotes" rows="10" placeholder="Internal admin notes..." class="soft-input"></textarea>
+            <button onclick="saveAdminManualNotes()" class="mt-4 w-full bg-zinc-900 border border-zinc-800 rounded-lg py-3 text-sm hover:bg-zinc-800">Save Admin Notes</button>
+            <button onclick="resetManualMetrics()" class="mt-3 w-full bg-red-950/30 border border-red-900/50 text-red-200 rounded-lg py-3 text-sm hover:bg-red-950/50">Reset Manual Metrics</button>
+          </div>
         </div>
       </section>
 
@@ -320,7 +429,7 @@
       <section id="tab-scorecards" class="tab-section hidden admin-only">
         <div class="mb-8">
           <h2 class="text-2xl font-semibold tracking-tighter">Rep Scorecards</h2>
-          <p class="text-sm text-zinc-400 mt-1">Individual score sheets for ALMA, Lauren, Jordan, and any additional rep/operator logging activity.</p>
+          <p class="text-sm text-zinc-400 mt-1">Individual score sheets for ALMA, Lauren, Jordan, and any rep/operator logging activity.</p>
         </div>
         <div id="scorecardGrid" class="grid grid-cols-1 xl:grid-cols-2 gap-6"></div>
       </section>
@@ -328,19 +437,29 @@
       <section id="tab-ids" class="tab-section hidden admin-only">
         <div class="mb-8">
           <h2 class="text-2xl font-semibold tracking-tighter">IDS Meeting Board</h2>
-          <p class="text-sm text-zinc-400 mt-1">Identify, Discuss, Solve — use this for SEAINT meeting issues, owners, and due dates.</p>
+          <p class="text-sm text-zinc-400 mt-1">Identify, Discuss, Solve — files, owners, due dates, and automatic calendar connection.</p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div class="glass-card rounded-xl p-6">
             <h3 class="text-base font-semibold mb-6">Add IDS Item</h3>
             <form onsubmit="addIDSItem(event)" class="space-y-4">
-              <input id="idsDate" type="date" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
-              <input id="idsIdentify" placeholder="Identify issue..." class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
-              <textarea id="idsDiscuss" rows="3" placeholder="Discuss..." class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500"></textarea>
-              <textarea id="idsSolve" rows="3" placeholder="Solve / next action..." class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500"></textarea>
-              <input id="idsOwner" placeholder="Owner" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
-              <input id="idsDue" type="date" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
+              <input id="idsDate" type="date" class="soft-input">
+              <input id="idsIdentify" placeholder="Identify issue..." class="soft-input">
+              <textarea id="idsDiscuss" rows="3" placeholder="Discuss..." class="soft-input"></textarea>
+              <textarea id="idsSolve" rows="3" placeholder="Solve / next action..." class="soft-input"></textarea>
+              <input id="idsOwner" placeholder="Owner" class="soft-input">
+              <input id="idsDue" type="date" class="soft-input">
+              <select id="idsPriority" class="soft-input">
+                <option>High</option>
+                <option>Medium</option>
+                <option>Low</option>
+              </select>
+              <input id="idsFiles" type="file" multiple class="soft-input">
+              <label class="flex items-center gap-2 text-sm text-zinc-400">
+                <input id="idsCreateCalendarTask" type="checkbox" checked class="rounded">
+                Add this IDS item to Calendar / Tasks
+              </label>
               <button class="w-full bg-white text-black font-semibold text-sm py-3 rounded-lg hover:bg-zinc-200">Save IDS Item</button>
             </form>
           </div>
@@ -353,14 +472,63 @@
             <table class="w-full text-left">
               <thead><tr class="border-b border-zinc-800/60">
                 <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Date</th>
-                <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Identify</th>
-                <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Discuss</th>
+                <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Issue</th>
                 <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Solve</th>
                 <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Owner</th>
+                <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Priority</th>
                 <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Due</th>
+                <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Files</th>
+                <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Action</th>
               </tr></thead>
               <tbody id="idsTable" class="divide-y divide-zinc-800/40"></tbody>
             </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-calendar" class="tab-section hidden admin-only">
+        <div class="mb-8">
+          <h2 class="text-2xl font-semibold tracking-tighter">Admin Calendar / Tasks</h2>
+          <p class="text-sm text-zinc-400 mt-1">Add events, assign owners, set importance, and connect IDS items into your execution calendar.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div class="glass-card rounded-xl p-6">
+            <h3 class="text-base font-semibold mb-6">Add Event / Task</h3>
+            <form onsubmit="addCalendarTask(event)" class="space-y-4">
+              <input id="calTitle" required placeholder="Task / Event title" class="soft-input">
+              <textarea id="calDescription" rows="3" placeholder="Details..." class="soft-input"></textarea>
+              <input id="calDate" type="date" required class="soft-input">
+              <input id="calTime" type="time" class="soft-input">
+              <input id="calOwner" placeholder="Owner" class="soft-input">
+              <select id="calPriority" class="soft-input">
+                <option>High</option>
+                <option>Medium</option>
+                <option>Low</option>
+              </select>
+              <select id="calStatus" class="soft-input">
+                <option>Open</option>
+                <option>In Progress</option>
+                <option>Done</option>
+              </select>
+              <button class="w-full bg-white text-black font-semibold text-sm py-3 rounded-lg hover:bg-zinc-200">Save Calendar Task</button>
+            </form>
+          </div>
+
+          <div class="glass-card rounded-xl p-6 lg:col-span-2">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+              <h3 class="text-base font-semibold">Calendar Board</h3>
+              <div class="flex gap-2">
+                <select id="calendarFilter" onchange="renderCalendar()" class="soft-input">
+                  <option>All</option>
+                  <option>Open</option>
+                  <option>In Progress</option>
+                  <option>Done</option>
+                </select>
+                <button onclick="clearCalendarTasks()" class="text-xs bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 hover:bg-zinc-800 whitespace-nowrap">Clear</button>
+              </div>
+            </div>
+            <div id="calendarList" class="space-y-3"></div>
           </div>
         </div>
       </section>
@@ -375,9 +543,9 @@
           <div class="lg:col-span-2 space-y-6">
             <div class="glass-card rounded-xl p-6">
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <input id="pricingSearch" oninput="renderPricing()" placeholder="Search service..." class="bg-black/50 border border-zinc-800 rounded-lg px-3 py-3 text-sm outline-none focus:border-blue-500">
+                <input id="pricingSearch" oninput="renderPricing()" placeholder="Search service..." class="soft-input">
 
-                <select id="categoryFilter" onchange="renderPricing()" class="bg-black/50 border border-zinc-800 rounded-lg px-3 py-3 text-sm outline-none focus:border-blue-500">
+                <select id="categoryFilter" onchange="renderPricing()" class="soft-input">
                   <option value="all">All Categories</option>
                   <option value="Website">Website</option>
                   <option value="AI">AI Systems</option>
@@ -389,7 +557,7 @@
                   <option value="Business">Business Systems</option>
                 </select>
 
-                <input id="budgetFilter" oninput="renderPricing(); buildBudgetOffers();" type="number" placeholder="Client budget e.g. 2000" class="bg-black/50 border border-zinc-800 rounded-lg px-3 py-3 text-sm outline-none focus:border-blue-500">
+                <input id="budgetFilter" oninput="renderPricing(); buildBudgetOffers();" type="number" placeholder="Client budget e.g. 2000" class="soft-input">
               </div>
 
               <div id="pricingList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
@@ -429,13 +597,10 @@
 
             <div class="glass-card rounded-xl p-6">
               <h3 class="text-base font-semibold mb-4">ALMA Offer Analysis</h3>
-
-              <textarea id="clientNeeds" rows="6" placeholder="Example: Client is a chiropractor. Needs more booked appointments, better website, follow-up system, and has a $2,000 budget." class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500"></textarea>
-
+              <textarea id="clientNeeds" rows="6" placeholder="Example: Client is a chiropractor. Needs more booked appointments, better website, follow-up system, and has a $2,000 budget." class="soft-input"></textarea>
               <button onclick="generateOfferAnalysis()" class="mt-4 w-full bg-white text-black font-semibold text-sm py-3 rounded-lg hover:bg-zinc-200">
                 Generate Better Offer
               </button>
-
               <div id="aiOfferOutput" class="mt-5 text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed"></div>
             </div>
           </div>
@@ -482,243 +647,145 @@
     </div>
   </main>
 
+  <div id="quickAddModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 items-center justify-center p-4">
+    <div class="glass-card rounded-2xl p-6 w-full max-w-lg">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="text-lg font-semibold">Quick Add</h3>
+        <button onclick="hideQuickAdd()" class="text-zinc-400 hover:text-white"><iconify-icon icon="solar:close-circle-linear" class="text-2xl"></iconify-icon></button>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <button onclick="hideQuickAdd(); showTab('repnotes', document.querySelector('[onclick*=repnotes]'))" class="p-4 rounded-xl bg-black/30 border border-zinc-800 hover:bg-zinc-900 text-left">
+          <p class="font-medium">Rep Note</p><p class="text-xs text-zinc-500 mt-1">Lead notes / objections</p>
+        </button>
+        <button onclick="hideQuickAdd(); showTab('ids', document.querySelector('[onclick*=ids]'))" class="p-4 rounded-xl bg-black/30 border border-zinc-800 hover:bg-zinc-900 text-left admin-only-nav">
+          <p class="font-medium">IDS Issue</p><p class="text-xs text-zinc-500 mt-1">Identify, discuss, solve</p>
+        </button>
+        <button onclick="hideQuickAdd(); showTab('calendar', document.querySelector('[onclick*=calendar]'))" class="p-4 rounded-xl bg-black/30 border border-zinc-800 hover:bg-zinc-900 text-left admin-only-nav">
+          <p class="font-medium">Calendar Task</p><p class="text-xs text-zinc-500 mt-1">Events and priorities</p>
+        </button>
+        <button onclick="hideQuickAdd(); showTab('dashboard', document.querySelector('[onclick*=dashboard]'))" class="p-4 rounded-xl bg-black/30 border border-zinc-800 hover:bg-zinc-900 text-left">
+          <p class="font-medium">Activity</p><p class="text-xs text-zinc-500 mt-1">Calls, deals, follow-up</p>
+        </button>
+      </div>
+    </div>
+  </div>
+
 <script>
 const supabaseClient = supabase.createClient(
   "https://qagfyyqfzhczoyhuihiv.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhZ2Z5eXFmemhjem95aHVpaGl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4Mjc1MDIsImV4cCI6MjA5MzQwMzUwMn0.Idn8QeB0RKhgB2FB9jft7Gtp164S7aeSy3hRYSOMFVE"
 );
 
-let currentUser = null, currentRole = "sales_rep", currentProfile = null, activities = [];
+let currentUser = null;
+let currentRole = "sales_rep";
+let currentProfile = null;
+let activities = [];
 let selectedOffer = [];
 
+const LS = {
+  repNotes: "salesos_rep_notes_v3",
+  ids: "salesos_ids_items_v3",
+  calendar: "salesos_calendar_tasks_v3",
+  manual: "salesos_manual_metrics_v3",
+  adminNotes: "salesos_admin_notes_v3"
+};
+
 const serviceCatalog = [
-  {category:"Website", name:"3-Page Website", low:500, high:900, monthly:150, note:"Best entry offer for small businesses that need a clean online presence fast."},
-  {category:"Website", name:"5–10 Page Website", low:1500, high:3500, monthly:250, note:"Best for businesses that need authority pages, service pages, and a stronger brand presentation."},
-  {category:"Website", name:"Landing Page Funnel", low:400, high:1000, monthly:100, note:"Best for one offer, ads, lead capture, and fast conversion testing."},
-  {category:"Website", name:"Full Sales Funnel", low:1500, high:4000, monthly:300, note:"Best for multi-step conversion flow, lead magnets, upsells, booking, and follow-up."},
-  {category:"Website", name:"E-Commerce Store", low:1500, high:4500, monthly:250, note:"Best for product brands that need checkout, product pages, and conversion structure."},
-  {category:"Website", name:"Website Redesign", low:800, high:2500, monthly:200, note:"Best for outdated websites that need better trust, design, mobile layout, and conversions."},
-
-  {category:"AI", name:"AI Chatbot Basic", low:300, high:700, monthly:150, note:"Basic website assistant for FAQs, lead capture, and client questions."},
-  {category:"AI", name:"Custom Trained AI Chatbot", low:800, high:2000, monthly:300, note:"Trained on business-specific services, offers, FAQs, and client objections."},
-  {category:"AI", name:"AI Lead Capture System", low:500, high:1500, monthly:250, note:"Captures prospect info and routes it into follow-up or CRM."},
-  {category:"AI", name:"AI Booking System", low:800, high:2000, monthly:300, note:"Helps book appointments, consultations, or service calls automatically."},
-  {category:"AI", name:"AI Sales Assistant", low:1000, high:3000, monthly:400, note:"Scripted AI flows to qualify leads, answer objections, and support sales conversations."},
-  {category:"AI", name:"AI Voice Agent", low:1500, high:4000, monthly:500, note:"Voice-based agent for answering calls, qualifying leads, and appointment support."},
-  {category:"AI", name:"Multi-Channel AI System", low:2500, high:7500, monthly:750, note:"Web + SMS + voice + email AI system for full lead response coverage."},
-
-  {category:"Automation", name:"Basic CRM Setup", low:300, high:800, monthly:100, note:"Simple CRM pipeline to organize leads, calls, and follow-ups."},
-  {category:"Automation", name:"CRM Pipeline Build", low:800, high:2000, monthly:250, note:"Custom pipeline stages, statuses, reps, follow-ups, and tracking."},
-  {category:"Automation", name:"Email Automation Flows", low:500, high:1500, monthly:200, note:"Automated email follow-ups for leads, booked calls, and clients."},
-  {category:"Automation", name:"SMS Automation Flows", low:500, high:1500, monthly:200, note:"Automated text follow-ups for missed leads, reminders, and reactivation."},
-  {category:"Automation", name:"Missed Call Text-Back System", low:300, high:800, monthly:150, note:"Instant text response when the business misses a call."},
-  {category:"Automation", name:"Sales Pipeline Automation", low:1000, high:3000, monthly:300, note:"Automates lead movement, rep tasks, reminders, and conversion steps."},
-
-  {category:"Media", name:"Monthly Content Package", low:800, high:2500, monthly:1000, note:"Short-form content, graphics, captions, and monthly posting support."},
-  {category:"Media", name:"Ad Creative Package", low:300, high:1500, monthly:300, note:"Static or video ad creatives for campaigns, offers, and retargeting."},
-  {category:"Media", name:"Brand Shoot Local", low:500, high:2000, monthly:0, note:"Local photo/video shoot for brand authority and content library."},
-  {category:"Media", name:"AI Voiceovers", low:100, high:500, monthly:0, note:"Voiceover assets for ads, VSLs, explainers, and social content."},
-  {category:"Media", name:"Voice Cloning", low:300, high:1000, monthly:100, note:"Custom voice clone setup for consistent AI voice content."},
-
-  {category:"Ads", name:"Facebook / Instagram Ad Setup", low:500, high:1500, monthly:1000, note:"Initial campaign setup, targeting, copy, and creative structure."},
-  {category:"Ads", name:"Google Ads Setup", low:500, high:1500, monthly:1000, note:"Search campaign setup for high-intent leads."},
-  {category:"Ads", name:"Full Campaign Setup", low:1500, high:4000, monthly:1500, note:"Full ad campaign architecture across funnel, creative, tracking, and launch."},
-  {category:"Ads", name:"Retargeting Setup", low:300, high:1000, monthly:300, note:"Retargeting visitors, video viewers, leads, and abandoned prospects."},
-
-  {category:"SEO", name:"SEO Audit", low:300, high:800, monthly:0, note:"Finds website, ranking, and local visibility issues."},
-  {category:"SEO", name:"On-Page SEO Setup", low:500, high:1500, monthly:250, note:"Titles, meta, structure, keyword placement, and page optimization."},
-  {category:"SEO", name:"Local SEO", low:500, high:2000, monthly:800, note:"Helps local businesses rank better in their city and service area."},
-  {category:"SEO", name:"Google Business Optimization", low:300, high:800, monthly:250, note:"Optimizes Google Business Profile for calls, maps, and local authority."},
-
-  {category:"Backend", name:"Supabase Setup", low:500, high:1500, monthly:150, note:"Database, auth, tables, and basic app backend setup."},
-  {category:"Backend", name:"API Development", low:1000, high:5000, monthly:300, note:"Custom API routes, integrations, and backend logic."},
-  {category:"Backend", name:"Stripe Integration", low:500, high:2000, monthly:100, note:"Payments, subscriptions, checkout, and product setup."},
-  {category:"Backend", name:"Full Backend System", low:3000, high:10000, monthly:750, note:"Full backend infrastructure for apps, portals, SaaS tools, or dashboards."},
-
-  {category:"Business", name:"Sales Dashboard", low:1500, high:4000, monthly:300, note:"Dashboard for reps, calls, deals, reporting, and team performance."},
-  {category:"Business", name:"Lead Tracking System", low:800, high:2500, monthly:250, note:"Tracks leads, sources, statuses, follow-up, and conversion."},
-  {category:"Business", name:"Referral System", low:500, high:2000, monthly:150, note:"Referral tracking, payouts, forms, and partner workflow."},
-  {category:"Business", name:"Affiliate System", low:500, high:2000, monthly:150, note:"Affiliate tracking and payout structure for partners or creators."}
+  {category:"Website", name:"3-Page Website", low:500, high:900, monthly:150, note:"Clean online presence fast."},
+  {category:"Website", name:"5–10 Page Website", low:1500, high:3500, monthly:250, note:"Authority pages, service pages, stronger brand."},
+  {category:"Website", name:"Landing Page Funnel", low:400, high:1000, monthly:100, note:"One offer, ads, lead capture."},
+  {category:"Website", name:"Full Sales Funnel", low:1500, high:4000, monthly:300, note:"Lead capture, upsells, booking, follow-up."},
+  {category:"Website", name:"E-Commerce Store", low:1500, high:4500, monthly:250, note:"Checkout, product pages, conversion structure."},
+  {category:"Website", name:"Website Redesign", low:800, high:2500, monthly:200, note:"Better trust, design, mobile layout, conversions."},
+  {category:"AI", name:"AI Chatbot Basic", low:300, high:700, monthly:150, note:"Website assistant for FAQs and lead capture."},
+  {category:"AI", name:"Custom Trained AI Chatbot", low:800, high:2000, monthly:300, note:"Trained on services, offers, FAQs, objections."},
+  {category:"AI", name:"AI Lead Capture System", low:500, high:1500, monthly:250, note:"Captures prospect info and routes it."},
+  {category:"AI", name:"AI Booking System", low:800, high:2000, monthly:300, note:"Books appointments and consults."},
+  {category:"AI", name:"AI Sales Assistant", low:1000, high:3000, monthly:400, note:"Qualifies leads and handles objections."},
+  {category:"AI", name:"AI Voice Agent", low:1500, high:4000, monthly:500, note:"Voice agent for calls and appointment support."},
+  {category:"AI", name:"Multi-Channel AI System", low:2500, high:7500, monthly:750, note:"Web + SMS + voice + email lead response."},
+  {category:"Automation", name:"Basic CRM Setup", low:300, high:800, monthly:100, note:"Simple pipeline to organize leads."},
+  {category:"Automation", name:"CRM Pipeline Build", low:800, high:2000, monthly:250, note:"Custom stages, statuses, reps, tracking."},
+  {category:"Automation", name:"Email Automation Flows", low:500, high:1500, monthly:200, note:"Email follow-ups for leads and clients."},
+  {category:"Automation", name:"SMS Automation Flows", low:500, high:1500, monthly:200, note:"Text follow-ups and reminders."},
+  {category:"Automation", name:"Missed Call Text-Back System", low:300, high:800, monthly:150, note:"Instant text after missed calls."},
+  {category:"Automation", name:"Sales Pipeline Automation", low:1000, high:3000, monthly:300, note:"Automates stages, reminders, tasks."},
+  {category:"Media", name:"Monthly Content Package", low:800, high:2500, monthly:1000, note:"Short-form content and posting support."},
+  {category:"Media", name:"Ad Creative Package", low:300, high:1500, monthly:300, note:"Static/video creatives for ads."},
+  {category:"Media", name:"Brand Shoot Local", low:500, high:2000, monthly:0, note:"Photo/video shoot for content library."},
+  {category:"Media", name:"AI Voiceovers", low:100, high:500, monthly:0, note:"Voiceovers for ads, VSLs, explainers."},
+  {category:"Media", name:"Voice Cloning", low:300, high:1000, monthly:100, note:"Custom AI voice setup."},
+  {category:"Ads", name:"Facebook / Instagram Ad Setup", low:500, high:1500, monthly:1000, note:"Campaign setup, targeting, copy, creative."},
+  {category:"Ads", name:"Google Ads Setup", low:500, high:1500, monthly:1000, note:"Search ads for high-intent leads."},
+  {category:"Ads", name:"Full Campaign Setup", low:1500, high:4000, monthly:1500, note:"Full ad campaign architecture."},
+  {category:"Ads", name:"Retargeting Setup", low:300, high:1000, monthly:300, note:"Retargeting visitors and leads."},
+  {category:"SEO", name:"SEO Audit", low:300, high:800, monthly:0, note:"Find website and ranking issues."},
+  {category:"SEO", name:"On-Page SEO Setup", low:500, high:1500, monthly:250, note:"Titles, meta, structure, keywords."},
+  {category:"SEO", name:"Local SEO", low:500, high:2000, monthly:800, note:"Local city/service visibility."},
+  {category:"SEO", name:"Google Business Optimization", low:300, high:800, monthly:250, note:"Optimize Google Business Profile."},
+  {category:"Backend", name:"Supabase Setup", low:500, high:1500, monthly:150, note:"Database, auth, tables, backend."},
+  {category:"Backend", name:"API Development", low:1000, high:5000, monthly:300, note:"Custom APIs and integrations."},
+  {category:"Backend", name:"Stripe Integration", low:500, high:2000, monthly:100, note:"Payments and subscriptions."},
+  {category:"Backend", name:"Full Backend System", low:3000, high:10000, monthly:750, note:"Full infrastructure for apps or SaaS."},
+  {category:"Business", name:"Sales Dashboard", low:1500, high:4000, monthly:300, note:"Reps, calls, deals, reporting."},
+  {category:"Business", name:"Lead Tracking System", low:800, high:2500, monthly:250, note:"Lead sources, statuses, follow-up."},
+  {category:"Business", name:"Referral System", low:500, high:2000, monthly:150, note:"Referral tracking and payouts."},
+  {category:"Business", name:"Affiliate System", low:500, high:2000, monthly:150, note:"Affiliate tracking and payout structure."}
 ];
 
 const serviceAddOns = {
-  "3-Page Website": [
-    { name:"Extra Page", price:100 },
-    { name:"Premium Design Upgrade", price:300 },
-    { name:"SEO Structure Setup", price:200 },
-    { name:"Copywriting", price:300 },
-    { name:"Speed Optimization", price:150 }
-  ],
-  "5–10 Page Website": [
-    { name:"Advanced UI/UX", price:500 },
-    { name:"Service Page Copywriting", price:500 },
-    { name:"Blog System", price:400 },
-    { name:"Advanced SEO Setup", price:500 },
-    { name:"AI Agent Embed", price:300 }
-  ],
-  "Landing Page Funnel": [
-    { name:"Conversion Copywriting", price:150 },
-    { name:"Advanced UI / Animations", price:200 },
-    { name:"Mobile Optimization", price:150 },
-    { name:"A/B Testing Setup", price:250 },
-    { name:"Lead Magnet Section", price:200 }
-  ],
-  "Full Sales Funnel": [
-    { name:"Upsell / Downsell Pages", price:600 },
-    { name:"Email Follow-Up Sequence", price:500 },
-    { name:"SMS Follow-Up Sequence", price:500 },
-    { name:"Stripe Checkout", price:500 },
-    { name:"Analytics Tracking", price:300 }
-  ],
-  "E-Commerce Store": [
-    { name:"Extra Product Pages", price:300 },
-    { name:"Checkout Optimization", price:400 },
-    { name:"Upsell System", price:500 },
-    { name:"Email Cart Recovery", price:500 },
-    { name:"Product Copywriting", price:300 }
-  ],
-  "Website Redesign": [
-    { name:"Brand Refresh", price:500 },
-    { name:"Mobile Conversion Upgrade", price:300 },
-    { name:"SEO Cleanup", price:300 },
-    { name:"New Copywriting", price:500 }
-  ],
-  "AI Chatbot Basic": [
-    { name:"Lead Capture Upgrade", price:200 },
-    { name:"FAQ Expansion", price:150 },
-    { name:"Website Embed Styling", price:150 }
-  ],
-  "Custom Trained AI Chatbot": [
-    { name:"Custom Knowledge Base", price:500 },
-    { name:"CRM Integration", price:400 },
-    { name:"Appointment Flow", price:300 },
-    { name:"Objection Handling Scripts", price:250 }
-  ],
-  "AI Lead Capture System": [
-    { name:"CRM Routing", price:300 },
-    { name:"SMS Notification", price:250 },
-    { name:"Email Notification", price:200 },
-    { name:"Lead Scoring", price:350 }
-  ],
-  "AI Booking System": [
-    { name:"Calendly Integration", price:300 },
-    { name:"Reminder Texts", price:300 },
-    { name:"No-Show Follow-Up", price:250 }
-  ],
-  "AI Sales Assistant": [
-    { name:"Custom Sales Scripts", price:400 },
-    { name:"Objection Handling", price:300 },
-    { name:"CRM Logging", price:400 },
-    { name:"Follow-Up Sequences", price:500 }
-  ],
-  "AI Voice Agent": [
-    { name:"Custom Voice Clone", price:500 },
-    { name:"Call Scripts + Flows", price:300 },
-    { name:"CRM Integration", price:400 },
-    { name:"Missed Call Routing", price:300 }
-  ],
-  "Multi-Channel AI System": [
-    { name:"Voice Channel", price:1000 },
-    { name:"SMS Channel", price:700 },
-    { name:"Email Channel", price:700 },
-    { name:"CRM Integration", price:800 },
-    { name:"Analytics Dashboard", price:1000 }
-  ],
-  "Basic CRM Setup": [
-    { name:"Custom Pipeline", price:300 },
-    { name:"Rep Assignment", price:200 },
-    { name:"Lead Status Automation", price:250 }
-  ],
-  "CRM Pipeline Build": [
-    { name:"Advanced Stages", price:300 },
-    { name:"Task Automation", price:400 },
-    { name:"Reporting Views", price:400 },
-    { name:"Sales Rep Permissions", price:300 }
-  ],
-  "Email Automation Flows": [
-    { name:"3 Email Sequence", price:300 },
-    { name:"7 Email Sequence", price:700 },
-    { name:"Lead Magnet Delivery", price:250 }
-  ],
-  "SMS Automation Flows": [
-    { name:"3 Text Sequence", price:300 },
-    { name:"Appointment Reminders", price:250 },
-    { name:"Reactivation Campaign", price:400 }
-  ],
-  "Missed Call Text-Back System": [
-    { name:"Custom Text Copy", price:100 },
-    { name:"CRM Logging", price:250 },
-    { name:"Follow-Up Sequence", price:300 }
-  ],
-  "Sales Pipeline Automation": [
-    { name:"Rep Notifications", price:300 },
-    { name:"Deal Stage Automation", price:500 },
-    { name:"Close/Lost Tracking", price:300 }
-  ],
-  "Monthly Content Package": [
-    { name:"Extra Reels", price:250 },
-    { name:"Story Graphics", price:150 },
-    { name:"Monthly Strategy Call", price:300 },
-    { name:"Posting Management", price:300 }
-  ],
-  "Ad Creative Package": [
-    { name:"Extra Static Ads", price:150 },
-    { name:"Video Ad Variant", price:300 },
-    { name:"Hook Testing Pack", price:250 }
-  ],
-  "Facebook / Instagram Ad Setup": [
-    { name:"Retargeting Audience", price:300 },
-    { name:"Conversion Tracking", price:300 },
-    { name:"Extra Campaign", price:500 }
-  ],
-  "Google Ads Setup": [
-    { name:"Keyword Expansion", price:300 },
-    { name:"Landing Page Alignment", price:400 },
-    { name:"Conversion Tracking", price:300 }
-  ],
-  "Local SEO": [
-    { name:"GBP Optimization", price:300 },
-    { name:"Citation Setup", price:400 },
-    { name:"Review Strategy", price:250 }
-  ],
-  "Sales Dashboard": [
-    { name:"Admin View", price:500 },
-    { name:"Sales Rep View", price:500 },
-    { name:"CSV Export", price:200 },
-    { name:"AI Offer Builder", price:700 }
-  ]
+  "3-Page Website": [{name:"Extra Page",price:100},{name:"Premium Design Upgrade",price:300},{name:"SEO Structure Setup",price:200},{name:"Copywriting",price:300}],
+  "5–10 Page Website": [{name:"Advanced UI/UX",price:500},{name:"Service Page Copywriting",price:500},{name:"Blog System",price:400},{name:"AI Agent Embed",price:300}],
+  "Landing Page Funnel": [{name:"Conversion Copywriting",price:150},{name:"Advanced UI / Animations",price:200},{name:"A/B Testing Setup",price:250}],
+  "Full Sales Funnel": [{name:"Upsell / Downsell Pages",price:600},{name:"Email Follow-Up Sequence",price:500},{name:"SMS Follow-Up Sequence",price:500},{name:"Stripe Checkout",price:500}],
+  "Website Redesign": [{name:"Brand Refresh",price:500},{name:"Mobile Conversion Upgrade",price:300},{name:"SEO Cleanup",price:300}],
+  "AI Voice Agent": [{name:"Custom Voice Clone",price:500},{name:"Call Scripts + Flows",price:300},{name:"CRM Integration",price:400}],
+  "Sales Dashboard": [{name:"Admin View",price:500},{name:"Sales Rep View",price:500},{name:"CSV Export",price:200},{name:"AI Offer Builder",price:700}]
 };
 
 function isAdminView(){ return currentRole === "admin" || currentRole === "growth_operator"; }
 function money(n){ return new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0}).format(Number(n||0)); }
+function num(n){ return Number(n||0); }
 function safe(v){ return String(v ?? "").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function getLS(key, fallback){ try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch { return fallback; } }
+function setLS(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+function percent(a,b){ return b ? Math.round((a/b)*100) + "%" : "0%"; }
+function priorityClass(p){ return p==="High" ? "priority-high" : p==="Low" ? "priority-low" : "priority-medium"; }
+function statusClass(s){ return s==="Done" ? "status-done" : s==="In Progress" ? "status-progress" : "status-open"; }
 
 function showTab(tab, btn){
-  const adminTabs = ["team","adminops","alma","scorecards","ids"];
+  const adminTabs = ["team","adminops","manual","alma","scorecards","ids","calendar"];
   if(adminTabs.includes(tab) && !isAdminView()){
     alert("This section is only available for admin and growth operators.");
     return;
   }
 
   document.querySelectorAll(".tab-section").forEach(s => s.classList.add("hidden"));
-  document.getElementById(`tab-${tab}`).classList.remove("hidden");
+  const target = document.getElementById(`tab-${tab}`);
+  if(target) target.classList.remove("hidden");
 
   document.querySelectorAll(".tab-btn").forEach(b => {
     b.classList.remove("tab-active", "text-white", "font-medium");
     b.classList.add("text-zinc-400");
   });
 
-  btn.classList.add("tab-active", "text-white", "font-medium");
-  btn.classList.remove("text-zinc-400");
+  if(btn){
+    btn.classList.add("tab-active", "text-white", "font-medium");
+    btn.classList.remove("text-zinc-400");
+  }
 
   const titles = {
     dashboard: "Dashboard Overview",
     team: "Team / Reps",
     analytics: "Analytics",
+    repnotes: "Rep Notes",
     adminops: "Admin Ops Command Center",
+    manual: "Manual Dashboard Controls",
     alma: "ALMA Analytics",
     scorecards: "Rep Scorecards",
     ids: "IDS Meeting Board",
+    calendar: "Admin Calendar / Tasks",
     pricing: "Pricing / Offer Builder",
     calls: "Call Logs",
     deals: "Deals Closed"
@@ -729,7 +796,10 @@ function showTab(tab, btn){
 
 async function init(){
   const { data } = await supabaseClient.auth.getSession();
-  if(!data.session){ window.location.href = "index.html"; return; }
+  if(!data.session){
+    window.location.href = "index.html";
+    return;
+  }
 
   currentUser = data.session.user;
 
@@ -739,7 +809,7 @@ async function init(){
     .eq("id", currentUser.id)
     .maybeSingle();
 
-  currentProfile = profile;
+  currentProfile = profile || {};
   currentRole = profile?.role || "sales_rep";
 
   userName.innerText = profile?.full_name || currentUser.email;
@@ -748,13 +818,14 @@ async function init(){
 
   if(!isAdminView()){
     headline.innerText = "My Performance";
-    subheadline.innerText = "Your personal logged activity and sales progress.";
+    subheadline.innerText = "Your personal logged activity, notes, and sales progress.";
     adminDashboardCards.style.display = "none";
     teamNavBtn.style.display = "none";
     document.querySelectorAll(".admin-only-nav").forEach(el => el.style.display = "none");
     document.querySelectorAll(".admin-only").forEach(el => el.style.display = "none");
   }
 
+  hydrateManualForm();
   await loadActivities();
   renderPricing();
   renderSelectedOffer();
@@ -766,16 +837,20 @@ async function loadActivities(){
   if(!isAdminView()) query = query.eq("user_id", currentUser.id);
 
   const { data, error } = await query;
-  if(error){ alert(error.message); return; }
+  if(error){
+    console.warn(error.message);
+    activities = [];
+  } else {
+    activities = data || [];
+  }
 
-  activities = data || [];
   renderDashboard();
 }
 
 async function logActivity(e){
   e.preventDefault();
 
-  const { error } = await supabaseClient.from("activities").insert([{
+  const payload = {
     user_id: currentUser.id,
     rep_name: currentProfile?.full_name || currentUser.email,
     activity_type: activityType.value,
@@ -784,36 +859,100 @@ async function logActivity(e){
     service_sold: serviceSold.value.trim(),
     status: activityType.value,
     notes: notes.value.trim()
-  }]);
+  };
 
-  if(error){ saveMessage.innerText = error.message; return; }
+  const { error } = await supabaseClient.from("activities").insert([payload]);
+
+  if(error){
+    saveMessage.innerText = "Supabase error: " + error.message;
+    return;
+  }
 
   saveMessage.innerText = "Saved.";
-  clientName.value=""; dealValue.value="0"; serviceSold.value=""; notes.value="";
+  clientName.value="";
+  dealValue.value="0";
+  serviceSold.value="";
+  notes.value="";
   await loadActivities();
+}
+
+function metricCount(types){
+  return activities.filter(a => types.includes(a.activity_type)).length;
+}
+function metricMoney(types){
+  return activities.filter(a => types.includes(a.activity_type)).reduce((s,a)=>s+Number(a.deal_value||0),0);
+}
+
+function manualMetrics(){
+  return getLS(LS.manual, {});
+}
+
+function combinedMetrics(){
+  const m = manualMetrics();
+  const newLeads = metricCount(["Total New Leads","Website Lead","IG Lead","TikTok Lead"]) + num(m.total_new_leads);
+  const referralLeads = metricCount(["Total Referral Leads"]) + num(m.total_referral_leads);
+  const website = metricCount(["Website Lead"]) + num(m.website_leads);
+  const ig = metricCount(["IG Lead"]) + num(m.ig_leads);
+  const tiktok = metricCount(["TikTok Lead"]) + num(m.tiktok_leads);
+  const scheduled = metricCount(["Appointment Set","ALMA Discovery Call Scheduled","Total Discovery Calls Scheduled"]) + num(m.discovery_scheduled);
+  const completed = metricCount(["Discovery Call","ALMA Discovery Call Completed","Total Discovery Calls Completed"]) + num(m.discovery_completed);
+  const enrollments = metricCount(["Total New Enrollments","ALMA TXT Enrollment","ALMA CALL Enrollment"]) + num(m.new_enrollments);
+  const dropped = metricCount(["Total Enrollments Dropped"]) + num(m.dropped_enrollments);
+
+  return {
+    newLeads,
+    referralLeads,
+    website,
+    ig,
+    tiktok,
+    allLeads: newLeads + referralLeads,
+    scheduled,
+    completed,
+    enrollments,
+    dropped,
+    netEnrollments: enrollments - dropped,
+    prebuild: metricMoney(["Total Pre-Build Deposits Collected"]) + num(m.prebuild_deposits),
+    build: metricMoney(["Total Build Revenue Collected"]) + num(m.build_revenue),
+    addon: metricMoney(["Total Add-On Build Revenue Collected"]) + num(m.addon_revenue),
+    collections: metricMoney(["Total Collections","Deal Closed"]) + num(m.prebuild_deposits) + num(m.build_revenue) + num(m.addon_revenue),
+    buildScheduled: metricCount(["Total Build Completions Scheduled"]) + num(m.build_scheduled),
+    buildCompleted: metricCount(["Total Build Completions"]) + num(m.build_completed),
+    forecastEnroll: metricCount(["Total SEAINT-ALMA Forecasted to ENROLL"]) + num(m.forecast_enroll),
+    forecastRevenue: metricMoney(["Total Forecasted Revenue for Next Week"]) + num(m.forecast_revenue),
+    almaTxtScheduled: metricCount(["Discovery Calls from ALMA TXT","ALMA Discovery Call Scheduled"]) + num(m.alma_txt_scheduled),
+    almaTxtCompleted: metricCount(["ALMA Discovery Call Completed"]) + num(m.alma_txt_completed),
+    almaCallScheduled: metricCount(["Discovery Calls from ALMA CALL"]) + num(m.alma_call_scheduled),
+    almaCallCompleted: metricCount(["ALMA Discovery Call Completed"]) + num(m.alma_call_completed),
+    almaTxtEnrollments: metricCount(["ALMA TXT Enrollment"]) + num(m.alma_txt_enrollments),
+    almaCallEnrollments: metricCount(["ALMA CALL Enrollment"]) + num(m.alma_call_enrollments),
+    almaDials: metricCount(["ALMA Dial"]) + num(m.alma_dials),
+    almaCollections: metricMoney(["Total Collections","Deal Closed"]) + num(m.alma_collections)
+  };
 }
 
 function renderDashboard(){
   const revenue = activities.filter(a=>a.activity_type==="Deal Closed").reduce((s,a)=>s+Number(a.deal_value||0),0);
-  totalRevenue.innerText = money(revenue);
-  totalCalls.innerText = activities.filter(a=>["Cold Call","Follow-up","Discovery Call"].includes(a.activity_type)).length;
-  totalAppts.innerText = activities.filter(a=>a.activity_type==="Appointment Set").length;
-  totalDeals.innerText = activities.filter(a=>a.activity_type==="Deal Closed").length;
+  totalRevenue.innerText = money(revenue + num(manualMetrics().build_revenue));
+  totalCalls.innerText = activities.filter(a=>["Cold Call","Follow-up","Discovery Call","Rep Dial","ALMA Dial"].includes(a.activity_type)).length + num(manualMetrics().alma_dials);
+  totalAppts.innerText = activities.filter(a=>a.activity_type==="Appointment Set").length + num(manualMetrics().discovery_scheduled);
+  totalDeals.innerText = activities.filter(a=>a.activity_type==="Deal Closed").length + num(manualMetrics().new_enrollments);
 
   renderActivities();
   renderLeaderboard();
   renderTeam();
   renderAnalytics();
-  renderCalls();
-  renderDeals();
   renderOpsDashboard();
   renderAlmaPage();
   renderScorecardsPage();
+  renderRepNotes();
   renderIDSPage();
+  renderCalendar();
+  renderCalls();
+  renderDeals();
 }
 
 function renderActivities(){
-  const q = (searchInput.value || "").toLowerCase();
+  const q = (searchInput?.value || "").toLowerCase();
   const filtered = activities.filter(a => [a.client_name,a.service_sold,a.rep_name,a.activity_type,a.notes].join(" ").toLowerCase().includes(q));
 
   activityTable.innerHTML = filtered.length ? filtered.map(a=>`
@@ -846,20 +985,28 @@ function renderLeaderboard(){
     </div>`).join("") : `<p class="text-sm text-zinc-500">No activity yet.</p>`;
 }
 
-function renderTeam(){
-  if(!isAdminView()) return;
-
+function getRepStats(){
   const map = {};
   activities.forEach(a=>{
     const rep=a.rep_name||"Unknown";
-    if(!map[rep]) map[rep]={actions:0,revenue:0,deals:0,calls:0,appts:0,last:a.created_at};
+    if(!map[rep]) map[rep]={actions:0,revenue:0,deals:0,calls:0,appts:0,completed:0,enrollments:0,dials:0,last:a.created_at};
     map[rep].actions++;
     map[rep].last=a.created_at;
     if(a.activity_type==="Deal Closed"){ map[rep].deals++; map[rep].revenue+=Number(a.deal_value||0); }
     if(["Cold Call","Follow-up","Discovery Call"].includes(a.activity_type)) map[rep].calls++;
-    if(a.activity_type==="Appointment Set") map[rep].appts++;
+    if(["Appointment Set","ALMA Discovery Call Scheduled","Total Discovery Calls Scheduled"].includes(a.activity_type)) map[rep].appts++;
+    if(["Discovery Call","ALMA Discovery Call Completed","Total Discovery Calls Completed"].includes(a.activity_type)) map[rep].completed++;
+    if(["Total New Enrollments","ALMA TXT Enrollment","ALMA CALL Enrollment"].includes(a.activity_type)) map[rep].enrollments++;
+    if(["Rep Dial","ALMA Dial"].includes(a.activity_type)) map[rep].dials++;
   });
+  ["ALMA","Lauren","Jordan"].forEach(rep=>{ if(!map[rep]) map[rep]={actions:0,revenue:0,deals:0,calls:0,appts:0,completed:0,enrollments:0,dials:0,last:null}; });
+  return map;
+}
 
+function renderTeam(){
+  if(!isAdminView()) return;
+
+  const map = getRepStats();
   const html = Object.entries(map).map(([rep,s])=>`
     <div class="p-4 rounded-xl bg-black/30 border border-zinc-800/50">
       <p class="font-medium">${safe(rep)}</p>
@@ -868,9 +1015,9 @@ function renderTeam(){
         <div><p class="text-xs text-zinc-500">Revenue</p><p class="font-semibold">${money(s.revenue)}</p></div>
         <div><p class="text-xs text-zinc-500">Deals</p><p class="font-semibold">${s.deals}</p></div>
         <div><p class="text-xs text-zinc-500">Calls</p><p class="font-semibold">${s.calls}</p></div>
-        <div><p class="text-xs text-zinc-500">Appointments</p><p class="font-semibold">${s.appts}</p></div>
+        <div><p class="text-xs text-zinc-500">Appts</p><p class="font-semibold">${s.appts}</p></div>
       </div>
-      <p class="text-xs text-zinc-600 mt-4">Last: ${new Date(s.last).toLocaleString()}</p>
+      <p class="text-xs text-zinc-600 mt-4">Last: ${s.last ? new Date(s.last).toLocaleString() : "No activity yet"}</p>
     </div>`).join("") || `<p class="text-sm text-zinc-500">No team data yet.</p>`;
 
   teamList.innerHTML = html;
@@ -887,26 +1034,389 @@ function renderAnalytics(){
   avgDeal.innerText = deals.length ? money(revenue / deals.length) : "$0";
   lostDeals.innerText = lost.length;
 
-  const types = ["Deal Closed","Appointment Set","Discovery Call","Follow-up","Cold Call","Closed Lost"];
+  const types = ["Deal Closed","Appointment Set","Discovery Call","Follow-up","Cold Call","Closed Lost","Rep Dial","ALMA Dial"];
   activityBreakdown.innerHTML = types.map(type=>{
     const count = activities.filter(a=>a.activity_type===type).length;
-    const percent = activities.length ? Math.round((count / activities.length) * 100) : 0;
+    const pct = activities.length ? Math.round((count / activities.length) * 100) : 0;
     return `
       <div>
         <div class="flex justify-between text-sm mb-1">
-          <span>${type}</span><span class="text-zinc-500">${count} • ${percent}%</span>
+          <span>${type}</span><span class="text-zinc-500">${count} • ${pct}%</span>
         </div>
         <div class="h-2 bg-zinc-900 rounded-full overflow-hidden">
-          <div class="h-full bg-blue-500 rounded-full" style="width:${percent}%"></div>
+          <div class="h-full bg-blue-500 rounded-full" style="width:${pct}%"></div>
         </div>
       </div>`;
   }).join("");
 }
 
+function renderOpsDashboard(){
+  if(!isAdminView()) return;
+  const c = combinedMetrics();
+  opsNewLeads.innerText = c.newLeads;
+  opsReferralLeads.innerText = c.referralLeads;
+  opsAllLeads.innerText = c.allLeads;
+  opsLeadSources.innerText = `${c.website} Web / ${c.ig} IG / ${c.tiktok} TikTok`;
+  opsDiscoveryScheduled.innerText = c.scheduled;
+  opsDiscoveryCompleted.innerText = c.completed;
+  opsDiscoveryCompletion.innerText = percent(c.completed, c.scheduled);
+  opsNewEnrollments.innerText = c.enrollments;
+  opsPreBuildDeposits.innerText = money(c.prebuild);
+  opsBuildRevenue.innerText = money(c.build);
+  opsAddonRevenue.innerText = money(c.addon);
+  opsTotalCollections.innerText = money(c.collections);
+  opsBuildScheduled.innerText = c.buildScheduled;
+  opsBuildCompleted.innerText = c.buildCompleted;
+  opsBuildCompletion.innerText = percent(c.buildCompleted, c.buildScheduled);
+  opsForecastEnroll.innerText = c.forecastEnroll;
+  opsForecastRevenue.innerText = money(c.forecastRevenue);
+  opsNetEnrollments.innerText = c.netEnrollments;
+
+  systemHealth.innerHTML = [
+    {name:"Lead Flow", value:c.allLeads, good:c.allLeads>0},
+    {name:"Follow-Up", value:c.scheduled, good:c.scheduled>0},
+    {name:"Discovery Completion", value:percent(c.completed,c.scheduled), good:c.scheduled && c.completed/c.scheduled>=.6},
+    {name:"Collections", value:money(c.collections), good:c.collections>0}
+  ].map(x=>`
+    <div class="mini-kpi">
+      <div class="flex items-center justify-between">
+        <p class="text-sm text-zinc-400">${x.name}</p>
+        <span class="${x.good?'text-green-300':'text-yellow-300'} text-xs">${x.good?'Healthy':'Needs Input'}</span>
+      </div>
+      <p class="text-2xl font-semibold mt-3">${x.value}</p>
+    </div>`).join("");
+}
+
+function renderAlmaPage(){
+  if(!isAdminView()) return;
+  const c = combinedMetrics();
+  almaTxtScheduled.innerText = c.almaTxtScheduled;
+  almaTxtCompleted.innerText = c.almaTxtCompleted;
+  almaCallScheduled.innerText = c.almaCallScheduled;
+  almaCallCompleted.innerText = c.almaCallCompleted;
+  almaTxtEnrollments.innerText = c.almaTxtEnrollments;
+  almaCallEnrollments.innerText = c.almaCallEnrollments;
+  almaTxtRatio.innerText = percent(c.almaTxtEnrollments, c.almaTxtCompleted || c.almaTxtScheduled);
+  almaCallRatio.innerText = percent(c.almaCallEnrollments, c.almaCallCompleted || c.almaCallScheduled);
+  almaCollections.innerText = money(c.almaCollections);
+  almaForecast.innerText = c.forecastEnroll;
+  almaTotalDials.innerText = c.almaDials;
+
+  const almaItems = activities.filter(a => String(a.activity_type||"").toLowerCase().includes("alma"));
+  almaActivityTable.innerHTML = almaItems.length ? almaItems.map(a=>`
+    <tr class="hover:bg-zinc-900/40">
+      <td class="px-3 py-3 text-sm">${safe(a.activity_type)}</td>
+      <td class="px-3 py-3 text-sm text-zinc-400">${safe(a.client_name||"")}</td>
+      <td class="px-3 py-3 text-sm font-medium">${money(a.deal_value)}</td>
+      <td class="px-3 py-3 text-sm text-zinc-500">${safe(a.notes||"")}</td>
+      <td class="px-3 py-3 text-xs text-zinc-500">${new Date(a.created_at).toLocaleString()}</td>
+    </tr>`).join("") : `<tr><td colspan="5" class="px-3 py-8 text-sm text-zinc-500 text-center">No ALMA activity yet.</td></tr>`;
+}
+
+function renderScorecardsPage(){
+  if(!isAdminView()) return;
+  const map = getRepStats();
+  scorecardGrid.innerHTML = Object.entries(map).map(([rep,s])=>`
+    <div class="glass-card rounded-xl p-6">
+      <div class="flex items-start justify-between mb-5">
+        <div>
+          <h3 class="text-lg font-semibold">${safe(rep)}</h3>
+          <p class="text-xs text-zinc-500">Individual Rep Forecast / Score Sheet</p>
+        </div>
+        <span class="pill">${s.actions} actions</span>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+        <div class="mini-kpi"><p class="text-xs text-zinc-500">Leads</p><p class="text-xl font-semibold">${s.actions}</p></div>
+        <div class="mini-kpi"><p class="text-xs text-zinc-500">Scheduled</p><p class="text-xl font-semibold">${s.appts}</p></div>
+        <div class="mini-kpi"><p class="text-xs text-zinc-500">Completed</p><p class="text-xl font-semibold">${s.completed}</p></div>
+        <div class="mini-kpi"><p class="text-xs text-zinc-500">Enrollments</p><p class="text-xl font-semibold">${s.enrollments}</p></div>
+        <div class="mini-kpi"><p class="text-xs text-zinc-500">Collections</p><p class="text-xl font-semibold">${money(s.revenue)}</p></div>
+        <div class="mini-kpi"><p class="text-xs text-zinc-500">Dials</p><p class="text-xl font-semibold">${s.dials}</p></div>
+        <div class="mini-kpi"><p class="text-xs text-zinc-500">Completion %</p><p class="text-xl font-semibold">${percent(s.completed,s.appts)}</p></div>
+        <div class="mini-kpi"><p class="text-xs text-zinc-500">Enroll Ratio</p><p class="text-xl font-semibold">${percent(s.enrollments,s.completed)}</p></div>
+      </div>
+      <div class="h-2 bg-zinc-900 rounded-full overflow-hidden">
+        <div class="h-full bg-blue-500 rounded-full" style="width:${Math.min(100, Number(percent(s.enrollments, s.completed).replace("%","")) || 0)}%"></div>
+      </div>
+    </div>
+  `).join("");
+}
+
+function addRepNote(e){
+  e.preventDefault();
+  const notes = getLS(LS.repNotes, []);
+  notes.unshift({
+    id: uid(),
+    user_id: currentUser?.id,
+    rep: currentProfile?.full_name || currentUser?.email || "Unknown",
+    client: repNoteClient.value.trim(),
+    type: repNoteType.value,
+    priority: repNotePriority.value,
+    body: repNoteBody.value.trim(),
+    created_at: new Date().toISOString()
+  });
+  setLS(LS.repNotes, notes);
+  repNoteClient.value="";
+  repNoteBody.value="";
+  renderRepNotes();
+}
+
+function renderRepNotes(){
+  const q = (repNoteSearch?.value || "").toLowerCase();
+  let notes = getLS(LS.repNotes, []);
+  if(!isAdminView()) notes = notes.filter(n => n.user_id === currentUser?.id || n.rep === (currentProfile?.full_name || currentUser?.email));
+  notes = notes.filter(n => [n.client,n.type,n.priority,n.body,n.rep].join(" ").toLowerCase().includes(q));
+  repNotesList.innerHTML = notes.length ? notes.map(n=>`
+    <div class="p-4 rounded-xl bg-black/30 border border-zinc-800/50">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <p class="font-medium">${safe(n.client || "General Note")}</p>
+          <p class="text-xs text-zinc-500 mt-1">${safe(n.rep)} • ${new Date(n.created_at).toLocaleString()}</p>
+        </div>
+        <div class="flex gap-2">
+          <span class="pill">${safe(n.type)}</span>
+          <span class="pill ${priorityClass(n.priority)}">${safe(n.priority)}</span>
+        </div>
+      </div>
+      <p class="text-sm text-zinc-300 mt-3 whitespace-pre-wrap">${safe(n.body)}</p>
+      ${(isAdminView() || n.user_id === currentUser?.id) ? `<button onclick="deleteRepNote('${n.id}')" class="mt-3 text-xs text-red-300 hover:text-red-200">Delete</button>` : ""}
+    </div>
+  `).join("") : `<p class="text-sm text-zinc-500">No notes yet.</p>`;
+}
+
+function deleteRepNote(id){
+  const notes = getLS(LS.repNotes, []).filter(n => n.id !== id);
+  setLS(LS.repNotes, notes);
+  renderRepNotes();
+}
+
+function fileList(files){
+  return Array.from(files || []).map(f => ({ name:f.name, size:f.size, type:f.type }));
+}
+
+function addIDSItem(e){
+  e.preventDefault();
+  const idsItems = getLS(LS.ids, []);
+  const item = {
+    id: uid(),
+    date: idsDate.value || new Date().toISOString().slice(0,10),
+    identify: idsIdentify.value.trim(),
+    discuss: idsDiscuss.value.trim(),
+    solve: idsSolve.value.trim(),
+    owner: idsOwner.value.trim(),
+    due: idsDue.value || "",
+    priority: idsPriority.value,
+    files: fileList(idsFiles.files),
+    status: "Open",
+    created_at: new Date().toISOString()
+  };
+  idsItems.unshift(item);
+  setLS(LS.ids, idsItems);
+
+  if(idsCreateCalendarTask.checked){
+    const cal = getLS(LS.calendar, []);
+    cal.unshift({
+      id: uid(),
+      source: "IDS",
+      ids_id: item.id,
+      title: item.identify || "IDS Task",
+      description: item.solve || item.discuss || "",
+      date: item.due || item.date,
+      time: "",
+      owner: item.owner,
+      priority: item.priority,
+      status: "Open",
+      created_at: new Date().toISOString()
+    });
+    setLS(LS.calendar, cal);
+  }
+
+  idsIdentify.value="";
+  idsDiscuss.value="";
+  idsSolve.value="";
+  idsOwner.value="";
+  idsDue.value="";
+  idsFiles.value="";
+  renderIDSPage();
+  renderCalendar();
+}
+
+function clearIDSItems(){
+  if(!confirm("Clear local IDS items?")) return;
+  setLS(LS.ids, []);
+  renderIDSPage();
+}
+
+function deleteIDSItem(id){
+  setLS(LS.ids, getLS(LS.ids, []).filter(i => i.id !== id));
+  renderIDSPage();
+}
+
+function pushIDSToCalendar(id){
+  const ids = getLS(LS.ids, []);
+  const item = ids.find(i => i.id === id);
+  if(!item) return;
+  const cal = getLS(LS.calendar, []);
+  cal.unshift({
+    id: uid(),
+    source: "IDS",
+    ids_id: item.id,
+    title: item.identify || "IDS Task",
+    description: item.solve || item.discuss || "",
+    date: item.due || item.date,
+    time: "",
+    owner: item.owner,
+    priority: item.priority,
+    status: "Open",
+    created_at: new Date().toISOString()
+  });
+  setLS(LS.calendar, cal);
+  renderCalendar();
+  alert("IDS item added to Calendar / Tasks.");
+}
+
+function renderIDSPage(){
+  if(!isAdminView()) return;
+  let idsItems = getLS(LS.ids, []);
+  if(!idsItems.length){
+    idsItems = [{
+      id: "starter-ids",
+      date: "2026-06-13",
+      identify: "June 13th SEAINT Event",
+      discuss: "Need to have a venue picked out and pricing finalized.",
+      solve: "Assign owner, confirm venue options, collect pricing, and set final decision date.",
+      owner: "Admin",
+      due: "",
+      priority:"High",
+      files:[],
+      status:"Open",
+      created_at:new Date().toISOString()
+    }];
+  }
+
+  idsTable.innerHTML = idsItems.map(i => `
+    <tr class="hover:bg-zinc-900/40 align-top">
+      <td class="px-3 py-3 text-xs text-zinc-500">${safe(i.date)}</td>
+      <td class="px-3 py-3"><p class="text-sm font-medium">${safe(i.identify)}</p><p class="text-xs text-zinc-500 mt-1">${safe(i.discuss)}</p></td>
+      <td class="px-3 py-3 text-sm text-zinc-400">${safe(i.solve)}</td>
+      <td class="px-3 py-3 text-sm text-zinc-300">${safe(i.owner)}</td>
+      <td class="px-3 py-3"><span class="pill ${priorityClass(i.priority)}">${safe(i.priority)}</span></td>
+      <td class="px-3 py-3 text-xs text-zinc-500">${safe(i.due)}</td>
+      <td class="px-3 py-3 text-xs text-zinc-500">${(i.files||[]).length ? (i.files||[]).map(f=>`<p>${safe(f.name)}</p>`).join("") : "No files"}</td>
+      <td class="px-3 py-3">
+        <button onclick="pushIDSToCalendar('${i.id}')" class="text-xs text-blue-300 hover:text-blue-200 block mb-2">Add to Calendar</button>
+        ${i.id !== "starter-ids" ? `<button onclick="deleteIDSItem('${i.id}')" class="text-xs text-red-300 hover:text-red-200">Delete</button>` : ""}
+      </td>
+    </tr>
+  `).join("");
+}
+
+function addCalendarTask(e){
+  e.preventDefault();
+  const tasks = getLS(LS.calendar, []);
+  tasks.unshift({
+    id: uid(),
+    source:"Manual",
+    title: calTitle.value.trim(),
+    description: calDescription.value.trim(),
+    date: calDate.value,
+    time: calTime.value,
+    owner: calOwner.value.trim(),
+    priority: calPriority.value,
+    status: calStatus.value,
+    created_at: new Date().toISOString()
+  });
+  setLS(LS.calendar, tasks);
+  calTitle.value="";
+  calDescription.value="";
+  calDate.value="";
+  calTime.value="";
+  calOwner.value="";
+  renderCalendar();
+}
+
+function updateTaskStatus(id, status){
+  const tasks = getLS(LS.calendar, []).map(t => t.id === id ? {...t,status} : t);
+  setLS(LS.calendar, tasks);
+  renderCalendar();
+}
+
+function deleteCalendarTask(id){
+  setLS(LS.calendar, getLS(LS.calendar, []).filter(t => t.id !== id));
+  renderCalendar();
+}
+
+function clearCalendarTasks(){
+  if(!confirm("Clear local calendar tasks?")) return;
+  setLS(LS.calendar, []);
+  renderCalendar();
+}
+
+function renderCalendar(){
+  if(!isAdminView()) return;
+  const filter = calendarFilter?.value || "All";
+  let tasks = getLS(LS.calendar, []);
+  if(filter !== "All") tasks = tasks.filter(t => t.status === filter);
+  tasks.sort((a,b)=>String(a.date||"").localeCompare(String(b.date||"")));
+  calendarList.innerHTML = tasks.length ? tasks.map(t=>`
+    <div class="p-4 rounded-xl bg-black/30 border border-zinc-800/50">
+      <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+        <div>
+          <div class="flex flex-wrap gap-2 mb-2">
+            <span class="pill ${priorityClass(t.priority)}">${safe(t.priority)}</span>
+            <span class="pill ${statusClass(t.status)}">${safe(t.status)}</span>
+            <span class="pill">${safe(t.source || "Manual")}</span>
+          </div>
+          <p class="font-medium">${safe(t.title)}</p>
+          <p class="text-sm text-zinc-400 mt-1">${safe(t.description)}</p>
+          <p class="text-xs text-zinc-500 mt-2">${safe(t.date)} ${safe(t.time || "")} • Owner: ${safe(t.owner || "Unassigned")}</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="updateTaskStatus('${t.id}','In Progress')" class="text-xs bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 hover:bg-zinc-800">Progress</button>
+          <button onclick="updateTaskStatus('${t.id}','Done')" class="text-xs bg-green-950/30 border border-green-900/50 text-green-200 rounded-lg px-3 py-2 hover:bg-green-950/50">Done</button>
+          <button onclick="deleteCalendarTask('${t.id}')" class="text-xs bg-red-950/30 border border-red-900/50 text-red-200 rounded-lg px-3 py-2 hover:bg-red-950/50">Delete</button>
+        </div>
+      </div>
+    </div>
+  `).join("") : `<p class="text-sm text-zinc-500">No calendar tasks yet.</p>`;
+}
+
+function hydrateManualForm(){
+  const m = manualMetrics();
+  const ids = [
+    "total_new_leads","total_referral_leads","website_leads","ig_leads","tiktok_leads","discovery_scheduled","discovery_completed",
+    "new_enrollments","dropped_enrollments","prebuild_deposits","build_revenue","addon_revenue","build_scheduled","build_completed",
+    "forecast_enroll","forecast_revenue","alma_txt_scheduled","alma_txt_completed","alma_call_scheduled","alma_call_completed",
+    "alma_txt_enrollments","alma_call_enrollments","alma_dials","alma_collections"
+  ];
+  ids.forEach(k => { const el = document.getElementById("m_"+k); if(el) el.value = m[k] ?? ""; });
+  if(adminManualNotes) adminManualNotes.value = localStorage.getItem(LS.adminNotes) || "";
+}
+
+function saveManualMetrics(e){
+  e.preventDefault();
+  const m = {};
+  document.querySelectorAll("[id^='m_']").forEach(el => m[el.id.replace("m_","")] = Number(el.value || 0));
+  setLS(LS.manual, m);
+  renderDashboard();
+  alert("Manual dashboard metrics saved.");
+}
+
+function saveAdminManualNotes(){
+  localStorage.setItem(LS.adminNotes, adminManualNotes.value);
+  alert("Admin notes saved.");
+}
+
+function resetManualMetrics(){
+  if(!confirm("Reset all manual metrics?")) return;
+  localStorage.removeItem(LS.manual);
+  hydrateManualForm();
+  renderDashboard();
+}
+
 function renderUpsells(service){
   const addons = serviceAddOns[service.name] || [];
   if(!addons.length) return `<p class="text-xs text-zinc-600 mt-3">No preset add-ons. Custom quote if needed.</p>`;
-
   return `
     <p class="text-xs text-zinc-500 mt-3 mb-1">Common Upgrades:</p>
     <div class="space-y-1">
@@ -916,8 +1426,7 @@ function renderUpsells(service){
           <span>${money(a.price)}</span>
         </div>
       `).join("")}
-    </div>
-  `;
+    </div>`;
 }
 
 function addServiceWithAddOns(serviceIndex, addOnIndexes){
@@ -931,7 +1440,6 @@ function renderPricing(){
   const search = (pricingSearch?.value || "").toLowerCase();
   const category = categoryFilter?.value || "all";
   const budget = Number(budgetFilter?.value || 0);
-
   const filtered = serviceCatalog.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(search) || s.category.toLowerCase().includes(search);
     const matchesCategory = category === "all" || s.category === category;
@@ -947,31 +1455,15 @@ function renderPricing(){
         <div class="flex-1">
           <p class="text-xs text-blue-400 uppercase tracking-widest">${safe(s.category)}</p>
           <h4 class="font-medium mt-1">${safe(s.name)}</h4>
-
-          <p class="text-sm text-zinc-400 mt-2">
-            <span class="text-white font-medium">Starting:</span> ${money(s.low)}
-            <span class="text-zinc-600">→ custom up to ${money(s.high)}</span>
-          </p>
-
-          <p class="text-xs text-zinc-600 mt-1">
-            ${s.monthly ? "Optional Monthly: " + money(s.monthly) + "/mo" : "No monthly required"}
-          </p>
-
+          <p class="text-sm text-zinc-400 mt-2"><span class="text-white font-medium">Starting:</span> ${money(s.low)} <span class="text-zinc-600">→ custom up to ${money(s.high)}</span></p>
+          <p class="text-xs text-zinc-600 mt-1">${s.monthly ? "Optional Monthly: " + money(s.monthly) + "/mo" : "No monthly required"}</p>
           <p class="text-xs text-zinc-500 mt-3 leading-relaxed">${safe(s.note || "")}</p>
           ${renderUpsells(s)}
         </div>
-
-        <button onclick="addServiceWithAddOns(${idx}, [])" class="bg-white text-black px-3 py-2 rounded-lg text-xs font-semibold hover:bg-zinc-200">
-          Add
-        </button>
+        <button onclick="addServiceWithAddOns(${idx}, [])" class="bg-white text-black px-3 py-2 rounded-lg text-xs font-semibold hover:bg-zinc-200">Add</button>
       </div>
-    </div>
-  `}).join("") || `<p class="text-sm text-zinc-500">No services found under this filter.</p>`;
-}
-
-function addService(index){
-  selectedOffer.push({...serviceCatalog[index], selectedAddOns:[]});
-  renderSelectedOffer();
+    </div>`;
+  }).join("") || `<p class="text-sm text-zinc-500">No services found under this filter.</p>`;
 }
 
 function removeService(index){
@@ -996,15 +1488,8 @@ function renderSelectedOffer(){
           <p class="text-sm font-medium">${safe(s.name)}</p>
           <p class="text-xs text-zinc-500">Starting ${money(s.low)} → max ${money(s.high)}</p>
         </div>
-        <button onclick="removeService(${i})" class="text-zinc-500 hover:text-red-400">
-          <iconify-icon icon="solar:trash-bin-trash-linear"></iconify-icon>
-        </button>
+        <button onclick="removeService(${i})" class="text-zinc-500 hover:text-red-400"><iconify-icon icon="solar:trash-bin-trash-linear"></iconify-icon></button>
       </div>
-      ${(s.selectedAddOns || []).length ? `
-        <div class="mt-2 space-y-1">
-          ${(s.selectedAddOns || []).map(a => `<p class="text-xs text-zinc-500">+ ${safe(a.name)} — ${money(a.price)}</p>`).join("")}
-        </div>
-      ` : ""}
     </div>
   `).join("") : `<p class="text-sm text-zinc-500">No services selected yet.</p>`;
 
@@ -1021,11 +1506,11 @@ function buildBudgetOffers(){
   }
 
   const offers = [
-    {name:"Starter Close Package", services:["Landing Page Funnel","AI Chatbot Basic","AI Lead Capture System"], pitch:"Best for getting the client online fast with a clear offer and basic AI lead capture."},
-    {name:"Local Growth Package", services:["3-Page Website","Google Business Optimization","Missed Call Text-Back System"], pitch:"Best for local businesses that need more calls, trust, and follow-up."},
-    {name:"Automation Starter", services:["Basic CRM Setup","Email Automation Flows","SMS Automation Flows"], pitch:"Best for businesses losing leads because they do not follow up fast enough."},
-    {name:"Authority Package", services:["Website Redesign","SEO Audit","Ad Creative Package"], pitch:"Best for businesses that already exist but look outdated online."},
-    {name:"AI Appointment Package", services:["Landing Page Funnel","AI Booking System","Missed Call Text-Back System"], pitch:"Best when the client wants more booked calls or appointments."}
+    {name:"Starter Close Package", services:["Landing Page Funnel","AI Chatbot Basic","AI Lead Capture System"], pitch:"Best for getting online fast with a clear offer and basic AI capture."},
+    {name:"Local Growth Package", services:["3-Page Website","Google Business Optimization","Missed Call Text-Back System"], pitch:"Best for local businesses that need calls, trust, and follow-up."},
+    {name:"Automation Starter", services:["Basic CRM Setup","Email Automation Flows","SMS Automation Flows"], pitch:"Best for businesses losing leads from weak follow-up."},
+    {name:"Authority Package", services:["Website Redesign","SEO Audit","Ad Creative Package"], pitch:"Best for outdated businesses that need stronger perception."},
+    {name:"AI Appointment Package", services:["Landing Page Funnel","AI Booking System","Missed Call Text-Back System"], pitch:"Best when the client wants more booked appointments."}
   ].map(pkg => {
     const items = pkg.services.map(name => serviceCatalog.find(s => s.name === name)).filter(Boolean);
     const total = items.reduce((sum, s) => sum + s.low, 0);
@@ -1034,19 +1519,12 @@ function buildBudgetOffers(){
 
   budgetOffers.innerHTML = offers.length ? offers.map(pkg => `
     <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4">
-      <div class="flex justify-between gap-3">
-        <h4 class="font-medium">${safe(pkg.name)}</h4>
-        <span class="text-sm font-semibold">${money(pkg.total)}</span>
-      </div>
+      <div class="flex justify-between gap-3"><h4 class="font-medium">${safe(pkg.name)}</h4><span class="text-sm font-semibold">${money(pkg.total)}</span></div>
       <p class="text-sm text-zinc-500 mt-2">${safe(pkg.pitch)}</p>
-      <div class="mt-3 space-y-1">
-        ${pkg.items.map(s => `<p class="text-xs text-zinc-400">• ${safe(s.name)}</p>`).join("")}
-      </div>
-      <button onclick='selectPackage(${JSON.stringify(pkg.items.map(s => serviceCatalog.indexOf(s)))})' class="mt-4 w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 text-xs hover:bg-zinc-800">
-        Use This Package
-      </button>
+      <div class="mt-3 space-y-1">${pkg.items.map(s => `<p class="text-xs text-zinc-400">• ${safe(s.name)}</p>`).join("")}</div>
+      <button onclick='selectPackage(${JSON.stringify(pkg.items.map(s => serviceCatalog.indexOf(s)))})' class="mt-4 w-full bg-zinc-900 border border-zinc-800 rounded-lg py-2 text-xs hover:bg-zinc-800">Use This Package</button>
     </div>
-  `).join("") : `<p class="text-sm text-zinc-500">No prebuilt package fits this budget. Try a higher budget or select individual services.</p>`;
+  `).join("") : `<p class="text-sm text-zinc-500">No prebuilt package fits this budget.</p>`;
 }
 
 function selectPackage(indexes){
@@ -1058,43 +1536,34 @@ async function generateOfferAnalysis(){
   const needs = clientNeeds.value.trim();
   const setup = selectedOffer.reduce((sum, s) => sum + s.low + (s.selectedAddOns || []).reduce((a,b)=>a+b.price,0), 0);
   const monthly = selectedOffer.reduce((sum, s) => sum + Number(s.monthly || 0), 0);
-  const selected = selectedOffer.map(s => {
-    const addons = (s.selectedAddOns || []).map(a => `+ ${a.name}: ${money(a.price)}`).join(", ");
-    return `${s.name}: ${money(s.low)} starting, ${money(s.high)} max, ${s.monthly ? money(s.monthly)+"/mo" : "no monthly"} ${addons ? " | Add-ons: " + addons : ""}`;
-  }).join("\n");
+  const selected = selectedOffer.map(s => `${s.name}: ${money(s.low)} starting, ${money(s.high)} max`).join("\n");
 
   if(!needs){
     aiOfferOutput.innerText = "Add client needs first.";
     return;
   }
 
-  aiOfferOutput.innerText = "ALMA is analyzing client needs and building a better offer...";
+  aiOfferOutput.innerText =
+`Recommended Offer:
 
-  try {
-    const res = await fetch("/api/offer-analysis", {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ needs, selected, setup, monthly })
-    });
+Client Needs:
+${needs}
 
-    const text = await res.text();
-    let data;
+Selected Services:
+${selected || "No services selected yet."}
 
-    try {
-      data = JSON.parse(text);
-    } catch {
-      throw new Error("API route is not returning JSON. Check api/offer-analysis.js and redeploy Vercel.");
-    }
+Position it like this:
+"We are not just selling one service. We are building the system that turns attention into booked calls, booked calls into enrollments, and enrollments into collections."
 
-    if(!res.ok) throw new Error(data.error || "AI analysis failed.");
-    aiOfferOutput.innerText = data.analysis || "No analysis returned.";
-  } catch(err) {
-    aiOfferOutput.innerText = err.message;
-  }
+Starting setup: ${money(setup)}
+Monthly add-on: ${money(monthly)}/mo
+
+Best close:
+Start with the smallest package that solves the immediate bottleneck, then scale into ads, ALMA, automation, and reporting after proof.`;
 }
 
 function renderCalls(){
-  const calls = activities.filter(a=>["Cold Call","Follow-up","Discovery Call"].includes(a.activity_type));
+  const calls = activities.filter(a=>["Cold Call","Follow-up","Discovery Call","Rep Dial","ALMA Dial"].includes(a.activity_type));
   callLogsTable.innerHTML = calls.length ? calls.map(a=>`
     <tr class="hover:bg-zinc-900/40">
       <td class="px-3 py-3 text-sm font-medium">${safe(a.client_name||"No client")}</td>
@@ -1117,274 +1586,15 @@ function renderDeals(){
     </tr>`).join("") : `<tr><td colspan="5" class="px-3 py-8 text-sm text-zinc-500 text-center">No deals closed yet.</td></tr>`;
 }
 
-
-function countType(type){
-  return activities.filter(a => a.activity_type === type).length;
-}
-
-function sumType(type){
-  return activities.filter(a => a.activity_type === type).reduce((s,a)=>s+Number(a.deal_value||0),0);
-}
-
-function countIncludes(words){
-  const w = words.map(x => x.toLowerCase());
-  return activities.filter(a => {
-    const t = String(a.activity_type||"").toLowerCase();
-    const r = String(a.rep_name||"").toLowerCase();
-    const n = String(a.notes||"").toLowerCase();
-    const c = String(a.client_name||"").toLowerCase();
-    const all = [t,r,n,c].join(" ");
-    return w.some(x => all.includes(x));
-  }).length;
-}
-
-function sumIncludes(words){
-  const w = words.map(x => x.toLowerCase());
-  return activities.filter(a => {
-    const t = String(a.activity_type||"").toLowerCase();
-    const r = String(a.rep_name||"").toLowerCase();
-    const n = String(a.notes||"").toLowerCase();
-    const c = String(a.client_name||"").toLowerCase();
-    const all = [t,r,n,c].join(" ");
-    return w.some(x => all.includes(x));
-  }).reduce((s,a)=>s+Number(a.deal_value||0),0);
-}
-
-function percent(part,total){
-  if(!total) return "0%";
-  return Math.round((part/total)*100)+"%";
-}
-
-function renderOpsDashboard(){
-  if(!isAdminView()) return;
-
-  const website = countType("Website Lead");
-  const ig = countType("IG Lead");
-  const tiktok = countType("TikTok Lead");
-  const newLeads = countType("Total New Leads") + website + ig + tiktok;
-  const referral = countType("Total Referral Leads");
-  const allLeads = newLeads + referral;
-
-  const almaScheduled = countType("ALMA Discovery Call Scheduled") + countType("Discovery Calls from ALMA TXT") + countType("Discovery Calls from ALMA CALL");
-  const prospectingScheduled = countType("Discovery Calls from Prospecting") + countType("Appointment Set") + countType("Total Discovery Calls Scheduled");
-  const scheduled = almaScheduled + prospectingScheduled;
-
-  const almaCompleted = countType("ALMA Discovery Call Completed");
-  const completed = almaCompleted + countType("Total Discovery Calls Completed") + countType("Discovery Call");
-
-  const newEnrollments = countType("Total New Enrollments") + countType("ALMA TXT Enrollment") + countType("ALMA CALL Enrollment");
-
-  const preBuild = sumType("Total Pre-Build Deposits Collected");
-  const buildRevenue = sumType("Total Build Revenue Collected");
-  const addOnRevenue = sumType("Total Add-On Build Revenue Collected");
-  const collections = sumType("Total Collections") + preBuild + buildRevenue + addOnRevenue + activities.filter(a=>a.activity_type==="Deal Closed").reduce((s,a)=>s+Number(a.deal_value||0),0);
-
-  const buildScheduled = countType("Total Build Completions Scheduled");
-  const buildCompleted = countType("Total Build Completions");
-  const dropped = countType("Total Enrollments Dropped");
-  const forecastEnroll = countType("Total SEAINT-ALMA Forecasted to ENROLL");
-  const forecastRevenue = sumType("Total Forecasted Revenue for Next Week");
-
-  opsNewLeads.innerText = newLeads;
-  opsReferralLeads.innerText = referral;
-  opsAllLeads.innerText = allLeads;
-  opsLeadSources.innerText = `${website} Web / ${ig} IG / ${tiktok} TikTok`;
-
-  opsDiscoveryScheduled.innerText = scheduled;
-  opsDiscoveryCompleted.innerText = completed;
-  opsDiscoveryCompletion.innerText = percent(completed, scheduled);
-  opsNewEnrollments.innerText = newEnrollments;
-
-  opsPreBuildDeposits.innerText = money(preBuild);
-  opsBuildRevenue.innerText = money(buildRevenue);
-  opsAddonRevenue.innerText = money(addOnRevenue);
-  opsTotalCollections.innerText = money(collections);
-
-  opsBuildScheduled.innerText = buildScheduled;
-  opsBuildCompleted.innerText = buildCompleted;
-  opsBuildCompletion.innerText = percent(buildCompleted, buildScheduled);
-
-  opsForecastEnroll.innerText = forecastEnroll;
-  opsForecastRevenue.innerText = money(forecastRevenue);
-  opsNetEnrollments.innerText = newEnrollments - dropped;
-
-  const collectionTypes = [
-    ["Pre-Build Deposits", preBuild],
-    ["Build Revenue", buildRevenue],
-    ["Add-On Build Revenue", addOnRevenue],
-    ["Total Collections", collections],
-    ["ALMA Purchases / TXT", countType("ALMA TXT Enrollment")],
-    ["ALMA Purchases / CALL", countType("ALMA CALL Enrollment")],
-    ["Dropped Enrollments", dropped],
-    ["Forecast Revenue", forecastRevenue]
-  ];
-
-  opsCollectionTypes.innerHTML = collectionTypes.map(([label,value]) => `
-    <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4">
-      <p class="text-xs text-zinc-500">${safe(label)}</p>
-      <p class="text-xl font-semibold mt-2">${typeof value === "number" && String(label).toLowerCase().includes("revenue") || String(label).toLowerCase().includes("deposits") || String(label).toLowerCase().includes("collections") ? money(value) : value}</p>
-    </div>
-  `).join("");
-}
-
-function renderAlmaPage(){
-  if(!isAdminView()) return;
-
-  const txtScheduled = countType("Discovery Calls from ALMA TXT");
-  const txtCompleted = countIncludes(["completed from txt","alma txt completed"]);
-  const callScheduled = countType("Discovery Calls from ALMA CALL");
-  const callCompleted = countIncludes(["completed from call","alma call completed"]);
-  const txtEnroll = countType("ALMA TXT Enrollment");
-  const callEnroll = countType("ALMA CALL Enrollment");
-  const almaCollectionsValue = activities.filter(a => {
-    const all = [a.rep_name,a.activity_type,a.notes,a.client_name].join(" ").toLowerCase();
-    return all.includes("alma") && ["Deal Closed","Total Collections","Total Build Revenue Collected","Total Pre-Build Deposits Collected","Total Add-On Build Revenue Collected"].includes(a.activity_type);
-  }).reduce((s,a)=>s+Number(a.deal_value||0),0);
-
-  almaTxtScheduled.innerText = txtScheduled;
-  almaTxtCompleted.innerText = txtCompleted;
-  almaCallScheduled.innerText = callScheduled;
-  almaCallCompleted.innerText = callCompleted;
-  almaTxtEnrollments.innerText = txtEnroll;
-  almaCallEnrollments.innerText = callEnroll;
-  almaTxtRatio.innerText = percent(txtEnroll, txtCompleted || txtScheduled);
-  almaCallRatio.innerText = percent(callEnroll, callCompleted || callScheduled);
-  almaCollections.innerText = money(almaCollectionsValue);
-  almaForecast.innerText = countIncludes(["alma forecast"]);
-  almaTotalDials.innerText = countType("ALMA Dial") + countIncludes(["alma dial"]);
-
-  const almaRows = activities.filter(a => [a.rep_name,a.activity_type,a.notes,a.client_name].join(" ").toLowerCase().includes("alma"));
-  almaActivityTable.innerHTML = almaRows.length ? almaRows.map(a=>`
-    <tr class="hover:bg-zinc-900/40">
-      <td class="px-3 py-3 text-sm text-zinc-300">${safe(a.activity_type)}</td>
-      <td class="px-3 py-3 text-sm font-medium">${safe(a.client_name || "No client")}</td>
-      <td class="px-3 py-3 text-sm font-medium">${money(a.deal_value)}</td>
-      <td class="px-3 py-3 text-sm text-zinc-500">${safe(a.notes || "")}</td>
-      <td class="px-3 py-3 text-xs text-zinc-500">${new Date(a.created_at).toLocaleString()}</td>
-    </tr>
-  `).join("") : `<tr><td colspan="5" class="px-3 py-8 text-sm text-zinc-500 text-center">No ALMA activity yet.</td></tr>`;
-}
-
-function repStats(repName){
-  const rows = activities.filter(a => String(a.rep_name || "").toLowerCase().includes(repName.toLowerCase()) || String(a.notes || "").toLowerCase().includes(repName.toLowerCase()));
-  const typeCount = t => rows.filter(a => a.activity_type === t).length;
-  const typeSum = t => rows.filter(a => a.activity_type === t).reduce((s,a)=>s+Number(a.deal_value||0),0);
-  const completed = rows.filter(a => ["Discovery Call","Total Discovery Calls Completed","ALMA Discovery Call Completed"].includes(a.activity_type) || String(a.activity_type).toLowerCase().includes("completed")).length;
-  const scheduled = rows.filter(a => ["Appointment Set","Total Discovery Calls Scheduled","ALMA Discovery Call Scheduled","Discovery Calls from ALMA TXT","Discovery Calls from ALMA CALL"].includes(a.activity_type) || String(a.activity_type).toLowerCase().includes("scheduled")).length;
-  const enrollments = rows.filter(a => ["Total New Enrollments","ALMA TXT Enrollment","ALMA CALL Enrollment"].includes(a.activity_type) || String(a.activity_type).toLowerCase().includes("enrollment")).length;
-  const dropped = typeCount("Total Enrollments Dropped");
-  const collections = rows.filter(a => ["Deal Closed","Total Collections","Total Pre-Build Deposits Collected","Total Build Revenue Collected","Total Add-On Build Revenue Collected"].includes(a.activity_type)).reduce((s,a)=>s+Number(a.deal_value||0),0);
-  const dials = rows.filter(a => ["ALMA Dial","Rep Dial","Cold Call"].includes(a.activity_type) || String(a.activity_type).toLowerCase().includes("dial")).length;
-  const referrals = typeCount("Total Referral Leads");
-  const leads = typeCount("Total New Leads") + typeCount("Website Lead") + typeCount("IG Lead") + typeCount("TikTok Lead") + referrals;
-  const forecast = rows.filter(a => String(a.activity_type).toLowerCase().includes("forecast")).length;
-  return {rows, scheduled, completed, enrollments, dropped, collections, dials, referrals, leads, forecast};
-}
-
-function renderScorecardsPage(){
-  if(!isAdminView()) return;
-
-  const reps = ["ALMA","Lauren","Jordan"];
-  const extraReps = Array.from(new Set(activities.map(a=>a.rep_name).filter(Boolean))).filter(r => !reps.some(base => r.toLowerCase().includes(base.toLowerCase())));
-  const all = [...reps, ...extraReps];
-
-  scorecardGrid.innerHTML = all.map(rep => {
-    const s = repStats(rep);
-    return `
-      <div class="glass-card rounded-xl p-6">
-        <div class="flex items-start justify-between gap-4 mb-5">
-          <div>
-            <h3 class="text-lg font-semibold">${safe(rep)}</h3>
-            <p class="text-xs text-zinc-500">${s.rows.length} tracked activities</p>
-          </div>
-          <span class="text-xs px-3 py-1 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/20">Scorecard</span>
-        </div>
-
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-          <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Total Leads</p><p class="text-xl font-semibold mt-2">${s.leads}</p></div>
-          <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Referrals</p><p class="text-xl font-semibold mt-2">${s.referrals}</p></div>
-          <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Scheduled</p><p class="text-xl font-semibold mt-2">${s.scheduled}</p></div>
-          <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Completed</p><p class="text-xl font-semibold mt-2">${s.completed}</p></div>
-          <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Enrollments</p><p class="text-xl font-semibold mt-2">${s.enrollments}</p></div>
-          <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Completion %</p><p class="text-xl font-semibold mt-2">${percent(s.completed,s.scheduled)}</p></div>
-          <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Dropped</p><p class="text-xl font-semibold mt-2">${s.dropped}</p></div>
-          <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Collections</p><p class="text-xl font-semibold mt-2">${money(s.collections)}</p></div>
-          <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Dials</p><p class="text-xl font-semibold mt-2">${s.dials}</p></div>
-        </div>
-
-        <div class="mt-5">
-          <div class="flex justify-between text-sm mb-2">
-            <span class="text-zinc-400">Enrollment to Completed Discovery</span>
-            <span>${percent(s.enrollments, s.completed)}</span>
-          </div>
-          <div class="h-2 bg-zinc-900 rounded-full overflow-hidden">
-            <div class="h-full bg-blue-500 rounded-full" style="width:${Math.min(100, Number(percent(s.enrollments, s.completed).replace("%","")) || 0)}%"></div>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join("");
-}
-
-let idsItems = JSON.parse(localStorage.getItem("salesos_ids_items") || "[]");
-
-function addIDSItem(e){
-  e.preventDefault();
-  idsItems.unshift({
-    date: idsDate.value || new Date().toISOString().slice(0,10),
-    identify: idsIdentify.value.trim(),
-    discuss: idsDiscuss.value.trim(),
-    solve: idsSolve.value.trim(),
-    owner: idsOwner.value.trim(),
-    due: idsDue.value || ""
-  });
-  localStorage.setItem("salesos_ids_items", JSON.stringify(idsItems));
-  idsIdentify.value = "";
-  idsDiscuss.value = "";
-  idsSolve.value = "";
-  idsOwner.value = "";
-  idsDue.value = "";
-  renderIDSPage();
-}
-
-function clearIDSItems(){
-  if(!confirm("Clear local IDS items?")) return;
-  idsItems = [];
-  localStorage.setItem("salesos_ids_items", "[]");
-  renderIDSPage();
-}
-
-function renderIDSPage(){
-  if(!isAdminView()) return;
-  if(!idsItems.length){
-    idsItems = [{
-      date: "2026-06-13",
-      identify: "June 13th SEAINT Event",
-      discuss: "Need to have a venue picked out and pricing finalized.",
-      solve: "Assign owner, confirm venue options, collect pricing, and set final decision date.",
-      owner: "Admin",
-      due: ""
-    }];
-  }
-  idsTable.innerHTML = idsItems.map(i => `
-    <tr class="hover:bg-zinc-900/40 align-top">
-      <td class="px-3 py-3 text-xs text-zinc-500">${safe(i.date)}</td>
-      <td class="px-3 py-3 text-sm font-medium">${safe(i.identify)}</td>
-      <td class="px-3 py-3 text-sm text-zinc-400">${safe(i.discuss)}</td>
-      <td class="px-3 py-3 text-sm text-zinc-400">${safe(i.solve)}</td>
-      <td class="px-3 py-3 text-sm text-zinc-300">${safe(i.owner)}</td>
-      <td class="px-3 py-3 text-xs text-zinc-500">${safe(i.due)}</td>
-    </tr>
-  `).join("");
-}
-
-
 function exportCSV(){
   const headers=["created_at","rep_name","activity_type","client_name","deal_value","service_sold","status","notes"];
   const csv=[headers.join(","),...activities.map(a=>headers.map(h=>`"${String(a[h]??"").replaceAll('"','""')}"`).join(","))].join("\n");
   const blob=new Blob([csv],{type:"text/csv"}), url=URL.createObjectURL(blob), a=document.createElement("a");
   a.href=url; a.download="salesos-activity.csv"; a.click(); URL.revokeObjectURL(url);
 }
+
+function showQuickAdd(){ quickAddModal.classList.remove("hidden"); quickAddModal.classList.add("flex"); }
+function hideQuickAdd(){ quickAddModal.classList.add("hidden"); quickAddModal.classList.remove("flex"); }
 
 async function logout(){
   await supabaseClient.auth.signOut();
