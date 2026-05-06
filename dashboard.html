@@ -44,6 +44,23 @@
         <iconify-icon icon="solar:chart-2-linear" class="text-lg"></iconify-icon> Analytics
       </button>
 
+
+      <button onclick="showTab('adminops', this)" class="tab-btn admin-only-nav w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
+        <iconify-icon icon="solar:server-square-cloud-linear" class="text-lg"></iconify-icon> Admin Ops
+      </button>
+
+      <button onclick="showTab('alma', this)" class="tab-btn admin-only-nav w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
+        <iconify-icon icon="solar:stars-linear" class="text-lg"></iconify-icon> ALMA Analytics
+      </button>
+
+      <button onclick="showTab('scorecards', this)" class="tab-btn admin-only-nav w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
+        <iconify-icon icon="solar:ranking-linear" class="text-lg"></iconify-icon> Scorecards
+      </button>
+
+      <button onclick="showTab('ids', this)" class="tab-btn admin-only-nav w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
+        <iconify-icon icon="solar:clipboard-check-linear" class="text-lg"></iconify-icon> IDS Meeting
+      </button>
+
       <button onclick="showTab('pricing', this)" class="tab-btn w-full flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-900/50 text-sm">
         <iconify-icon icon="solar:tag-price-linear" class="text-lg"></iconify-icon> Pricing / Offers
       </button>
@@ -118,7 +135,40 @@
             <h3 class="text-base font-semibold mb-6">Log Activity</h3>
             <form onsubmit="logActivity(event)" class="space-y-4">
               <select id="activityType" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
-                <option>Deal Closed</option><option>Appointment Set</option><option>Discovery Call</option><option>Follow-up</option><option>Cold Call</option><option>Closed Lost</option>
+
+                <option>Deal Closed</option>
+                <option>Appointment Set</option>
+                <option>Discovery Call</option>
+                <option>Follow-up</option>
+                <option>Cold Call</option>
+                <option>Closed Lost</option>
+                <option>Total New Leads</option>
+                <option>Total Referral Leads</option>
+                <option>Website Lead</option>
+                <option>IG Lead</option>
+                <option>TikTok Lead</option>
+                <option>Discovery Calls from ALMA TXT</option>
+                <option>Discovery Calls from ALMA CALL</option>
+                <option>ALMA Discovery Call Scheduled</option>
+                <option>ALMA Discovery Call Completed</option>
+                <option>Discovery Calls from Prospecting</option>
+                <option>Total Discovery Calls Scheduled</option>
+                <option>Total Discovery Calls Completed</option>
+                <option>Total New Enrollments</option>
+                <option>Total Pre-Build Deposits Collected</option>
+                <option>Total Build Revenue Collected</option>
+                <option>Total Add-On Build Revenue Collected</option>
+                <option>Total Collections</option>
+                <option>Total Build Completions Scheduled</option>
+                <option>Total Build Completions</option>
+                <option>Total Enrollments Dropped</option>
+                <option>Total SEAINT-ALMA Forecasted to ENROLL</option>
+                <option>Total Forecasted Revenue for Next Week</option>
+                <option>ALMA TXT Enrollment</option>
+                <option>ALMA CALL Enrollment</option>
+                <option>ALMA Dial</option>
+                <option>Rep Dial</option>
+
               </select>
               <input id="clientName" required placeholder="Business / Client" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
               <input id="dealValue" type="number" value="0" min="0" step="0.01" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
@@ -166,6 +216,152 @@
         <div class="glass-card rounded-xl p-6">
           <h3 class="text-base font-semibold mb-4">Activity Breakdown</h3>
           <div id="activityBreakdown" class="space-y-4"></div>
+        </div>
+      </section>
+
+
+      <section id="tab-adminops" class="tab-section hidden admin-only">
+        <div class="mb-8">
+          <h2 class="text-2xl font-semibold tracking-tighter">Admin Ops Command Center</h2>
+          <p class="text-sm text-zinc-400 mt-1">Company-level performance, lead flow, revenue, collections, forecasting, and completion tracking.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Total New Leads</p><h3 id="opsNewLeads" class="text-3xl font-semibold mt-3">0</h3></div>
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Referral Leads</p><h3 id="opsReferralLeads" class="text-3xl font-semibold mt-3">0</h3></div>
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">All Leads</p><h3 id="opsAllLeads" class="text-3xl font-semibold mt-3">0</h3></div>
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Lead Sources</p><h3 id="opsLeadSources" class="text-xl font-semibold mt-3">Web / IG / TikTok</h3></div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Discovery Scheduled</p><h3 id="opsDiscoveryScheduled" class="text-3xl font-semibold mt-3">0</h3></div>
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Discovery Completed</p><h3 id="opsDiscoveryCompleted" class="text-3xl font-semibold mt-3">0</h3></div>
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Discovery Completion %</p><h3 id="opsDiscoveryCompletion" class="text-3xl font-semibold mt-3">0%</h3></div>
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">New Enrollments</p><h3 id="opsNewEnrollments" class="text-3xl font-semibold mt-3">0</h3></div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Pre-Build Deposits</p><h3 id="opsPreBuildDeposits" class="text-3xl font-semibold mt-3">$0</h3></div>
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Build Revenue</p><h3 id="opsBuildRevenue" class="text-3xl font-semibold mt-3">$0</h3></div>
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Add-On Revenue</p><h3 id="opsAddonRevenue" class="text-3xl font-semibold mt-3">$0</h3></div>
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Total Collections</p><h3 id="opsTotalCollections" class="text-3xl font-semibold mt-3">$0</h3></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div class="glass-card rounded-xl p-6">
+            <h3 class="text-base font-semibold mb-4">Build Completion Tracking</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Scheduled</p><p id="opsBuildScheduled" class="text-2xl font-semibold mt-2">0</p></div>
+              <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Completed</p><p id="opsBuildCompleted" class="text-2xl font-semibold mt-2">0</p></div>
+              <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Completion %</p><p id="opsBuildCompletion" class="text-2xl font-semibold mt-2">0%</p></div>
+            </div>
+          </div>
+
+          <div class="glass-card rounded-xl p-6">
+            <h3 class="text-base font-semibold mb-4">Forecasting</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Forecasted to Enroll</p><p id="opsForecastEnroll" class="text-2xl font-semibold mt-2">0</p></div>
+              <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Forecast Revenue</p><p id="opsForecastRevenue" class="text-2xl font-semibold mt-2">$0</p></div>
+              <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Net Enrollments</p><p id="opsNetEnrollments" class="text-2xl font-semibold mt-2">0</p></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-xl p-6">
+          <h3 class="text-base font-semibold mb-4">Type of Collections / ALMA Purchase Tracking</h3>
+          <p class="text-sm text-zinc-400 mb-4">Use the Log Activity form to enter each collection or purchase type. Later, attach Supabase columns or Google Sheets import to automate these values.</p>
+          <div id="opsCollectionTypes" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"></div>
+        </div>
+      </section>
+
+      <section id="tab-alma" class="tab-section hidden admin-only">
+        <div class="mb-8">
+          <h2 class="text-2xl font-semibold tracking-tighter">ALMA Analytics</h2>
+          <p class="text-sm text-zinc-400 mt-1">TXT, CALL, discovery, enrollment, collections, forecast, and dial performance.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">TXT Discovery Scheduled</p><h3 id="almaTxtScheduled" class="text-3xl font-semibold mt-3">0</h3></div>
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">TXT Discovery Completed</p><h3 id="almaTxtCompleted" class="text-3xl font-semibold mt-3">0</h3></div>
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">CALL Discovery Scheduled</p><h3 id="almaCallScheduled" class="text-3xl font-semibold mt-3">0</h3></div>
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">CALL Discovery Completed</p><h3 id="almaCallCompleted" class="text-3xl font-semibold mt-3">0</h3></div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">TXT Enrollments</p><h3 id="almaTxtEnrollments" class="text-3xl font-semibold mt-3">0</h3></div>
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">CALL Enrollments</p><h3 id="almaCallEnrollments" class="text-3xl font-semibold mt-3">0</h3></div>
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">TXT Enrollment Ratio</p><h3 id="almaTxtRatio" class="text-3xl font-semibold mt-3">0%</h3></div>
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">CALL Enrollment Ratio</p><h3 id="almaCallRatio" class="text-3xl font-semibold mt-3">0%</h3></div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Total Collections</p><h3 id="almaCollections" class="text-3xl font-semibold mt-3">$0</h3></div>
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Forecast To Enroll</p><h3 id="almaForecast" class="text-3xl font-semibold mt-3">0</h3></div>
+          <div class="glass-card rounded-xl p-5"><p class="text-sm text-zinc-400">Total Dials</p><h3 id="almaTotalDials" class="text-3xl font-semibold mt-3">0</h3></div>
+        </div>
+
+        <div class="glass-card rounded-xl p-6">
+          <h3 class="text-base font-semibold mb-4">ALMA Activity Feed</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead><tr class="border-b border-zinc-800/60">
+                <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Metric</th>
+                <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Client</th>
+                <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Amount</th>
+                <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Notes</th>
+                <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Date</th>
+              </tr></thead>
+              <tbody id="almaActivityTable" class="divide-y divide-zinc-800/40"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="tab-scorecards" class="tab-section hidden admin-only">
+        <div class="mb-8">
+          <h2 class="text-2xl font-semibold tracking-tighter">Rep Scorecards</h2>
+          <p class="text-sm text-zinc-400 mt-1">Individual score sheets for ALMA, Lauren, Jordan, and any additional rep/operator logging activity.</p>
+        </div>
+        <div id="scorecardGrid" class="grid grid-cols-1 xl:grid-cols-2 gap-6"></div>
+      </section>
+
+      <section id="tab-ids" class="tab-section hidden admin-only">
+        <div class="mb-8">
+          <h2 class="text-2xl font-semibold tracking-tighter">IDS Meeting Board</h2>
+          <p class="text-sm text-zinc-400 mt-1">Identify, Discuss, Solve — use this for SEAINT meeting issues, owners, and due dates.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div class="glass-card rounded-xl p-6">
+            <h3 class="text-base font-semibold mb-6">Add IDS Item</h3>
+            <form onsubmit="addIDSItem(event)" class="space-y-4">
+              <input id="idsDate" type="date" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
+              <input id="idsIdentify" placeholder="Identify issue..." class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
+              <textarea id="idsDiscuss" rows="3" placeholder="Discuss..." class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500"></textarea>
+              <textarea id="idsSolve" rows="3" placeholder="Solve / next action..." class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500"></textarea>
+              <input id="idsOwner" placeholder="Owner" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
+              <input id="idsDue" type="date" class="w-full bg-black/50 border border-zinc-800 text-sm rounded-lg px-3 py-3 outline-none focus:border-blue-500">
+              <button class="w-full bg-white text-black font-semibold text-sm py-3 rounded-lg hover:bg-zinc-200">Save IDS Item</button>
+            </form>
+          </div>
+
+          <div class="glass-card rounded-xl p-6 lg:col-span-2 overflow-x-auto">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-base font-semibold">IDS Meeting</h3>
+              <button onclick="clearIDSItems()" class="text-xs bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 hover:bg-zinc-800">Clear Local IDS</button>
+            </div>
+            <table class="w-full text-left">
+              <thead><tr class="border-b border-zinc-800/60">
+                <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Date</th>
+                <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Identify</th>
+                <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Discuss</th>
+                <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Solve</th>
+                <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Owner</th>
+                <th class="px-3 py-3 text-[10px] text-zinc-500 uppercase">Due</th>
+              </tr></thead>
+              <tbody id="idsTable" class="divide-y divide-zinc-800/40"></tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -498,8 +694,9 @@ function money(n){ return new Intl.NumberFormat("en-US",{style:"currency",curren
 function safe(v){ return String(v ?? "").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
 
 function showTab(tab, btn){
-  if(tab === "team" && !isAdminView()){
-    alert("Team / Reps is only available for admin and growth operators.");
+  const adminTabs = ["team","adminops","alma","scorecards","ids"];
+  if(adminTabs.includes(tab) && !isAdminView()){
+    alert("This section is only available for admin and growth operators.");
     return;
   }
 
@@ -518,6 +715,10 @@ function showTab(tab, btn){
     dashboard: "Dashboard Overview",
     team: "Team / Reps",
     analytics: "Analytics",
+    adminops: "Admin Ops Command Center",
+    alma: "ALMA Analytics",
+    scorecards: "Rep Scorecards",
+    ids: "IDS Meeting Board",
     pricing: "Pricing / Offer Builder",
     calls: "Call Logs",
     deals: "Deals Closed"
@@ -550,6 +751,8 @@ async function init(){
     subheadline.innerText = "Your personal logged activity and sales progress.";
     adminDashboardCards.style.display = "none";
     teamNavBtn.style.display = "none";
+    document.querySelectorAll(".admin-only-nav").forEach(el => el.style.display = "none");
+    document.querySelectorAll(".admin-only").forEach(el => el.style.display = "none");
   }
 
   await loadActivities();
@@ -603,6 +806,10 @@ function renderDashboard(){
   renderAnalytics();
   renderCalls();
   renderDeals();
+  renderOpsDashboard();
+  renderAlmaPage();
+  renderScorecardsPage();
+  renderIDSPage();
 }
 
 function renderActivities(){
@@ -909,6 +1116,268 @@ function renderDeals(){
       <td class="px-3 py-3 text-xs text-zinc-500">${new Date(a.created_at).toLocaleString()}</td>
     </tr>`).join("") : `<tr><td colspan="5" class="px-3 py-8 text-sm text-zinc-500 text-center">No deals closed yet.</td></tr>`;
 }
+
+
+function countType(type){
+  return activities.filter(a => a.activity_type === type).length;
+}
+
+function sumType(type){
+  return activities.filter(a => a.activity_type === type).reduce((s,a)=>s+Number(a.deal_value||0),0);
+}
+
+function countIncludes(words){
+  const w = words.map(x => x.toLowerCase());
+  return activities.filter(a => {
+    const t = String(a.activity_type||"").toLowerCase();
+    const r = String(a.rep_name||"").toLowerCase();
+    const n = String(a.notes||"").toLowerCase();
+    const c = String(a.client_name||"").toLowerCase();
+    const all = [t,r,n,c].join(" ");
+    return w.some(x => all.includes(x));
+  }).length;
+}
+
+function sumIncludes(words){
+  const w = words.map(x => x.toLowerCase());
+  return activities.filter(a => {
+    const t = String(a.activity_type||"").toLowerCase();
+    const r = String(a.rep_name||"").toLowerCase();
+    const n = String(a.notes||"").toLowerCase();
+    const c = String(a.client_name||"").toLowerCase();
+    const all = [t,r,n,c].join(" ");
+    return w.some(x => all.includes(x));
+  }).reduce((s,a)=>s+Number(a.deal_value||0),0);
+}
+
+function percent(part,total){
+  if(!total) return "0%";
+  return Math.round((part/total)*100)+"%";
+}
+
+function renderOpsDashboard(){
+  if(!isAdminView()) return;
+
+  const website = countType("Website Lead");
+  const ig = countType("IG Lead");
+  const tiktok = countType("TikTok Lead");
+  const newLeads = countType("Total New Leads") + website + ig + tiktok;
+  const referral = countType("Total Referral Leads");
+  const allLeads = newLeads + referral;
+
+  const almaScheduled = countType("ALMA Discovery Call Scheduled") + countType("Discovery Calls from ALMA TXT") + countType("Discovery Calls from ALMA CALL");
+  const prospectingScheduled = countType("Discovery Calls from Prospecting") + countType("Appointment Set") + countType("Total Discovery Calls Scheduled");
+  const scheduled = almaScheduled + prospectingScheduled;
+
+  const almaCompleted = countType("ALMA Discovery Call Completed");
+  const completed = almaCompleted + countType("Total Discovery Calls Completed") + countType("Discovery Call");
+
+  const newEnrollments = countType("Total New Enrollments") + countType("ALMA TXT Enrollment") + countType("ALMA CALL Enrollment");
+
+  const preBuild = sumType("Total Pre-Build Deposits Collected");
+  const buildRevenue = sumType("Total Build Revenue Collected");
+  const addOnRevenue = sumType("Total Add-On Build Revenue Collected");
+  const collections = sumType("Total Collections") + preBuild + buildRevenue + addOnRevenue + activities.filter(a=>a.activity_type==="Deal Closed").reduce((s,a)=>s+Number(a.deal_value||0),0);
+
+  const buildScheduled = countType("Total Build Completions Scheduled");
+  const buildCompleted = countType("Total Build Completions");
+  const dropped = countType("Total Enrollments Dropped");
+  const forecastEnroll = countType("Total SEAINT-ALMA Forecasted to ENROLL");
+  const forecastRevenue = sumType("Total Forecasted Revenue for Next Week");
+
+  opsNewLeads.innerText = newLeads;
+  opsReferralLeads.innerText = referral;
+  opsAllLeads.innerText = allLeads;
+  opsLeadSources.innerText = `${website} Web / ${ig} IG / ${tiktok} TikTok`;
+
+  opsDiscoveryScheduled.innerText = scheduled;
+  opsDiscoveryCompleted.innerText = completed;
+  opsDiscoveryCompletion.innerText = percent(completed, scheduled);
+  opsNewEnrollments.innerText = newEnrollments;
+
+  opsPreBuildDeposits.innerText = money(preBuild);
+  opsBuildRevenue.innerText = money(buildRevenue);
+  opsAddonRevenue.innerText = money(addOnRevenue);
+  opsTotalCollections.innerText = money(collections);
+
+  opsBuildScheduled.innerText = buildScheduled;
+  opsBuildCompleted.innerText = buildCompleted;
+  opsBuildCompletion.innerText = percent(buildCompleted, buildScheduled);
+
+  opsForecastEnroll.innerText = forecastEnroll;
+  opsForecastRevenue.innerText = money(forecastRevenue);
+  opsNetEnrollments.innerText = newEnrollments - dropped;
+
+  const collectionTypes = [
+    ["Pre-Build Deposits", preBuild],
+    ["Build Revenue", buildRevenue],
+    ["Add-On Build Revenue", addOnRevenue],
+    ["Total Collections", collections],
+    ["ALMA Purchases / TXT", countType("ALMA TXT Enrollment")],
+    ["ALMA Purchases / CALL", countType("ALMA CALL Enrollment")],
+    ["Dropped Enrollments", dropped],
+    ["Forecast Revenue", forecastRevenue]
+  ];
+
+  opsCollectionTypes.innerHTML = collectionTypes.map(([label,value]) => `
+    <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4">
+      <p class="text-xs text-zinc-500">${safe(label)}</p>
+      <p class="text-xl font-semibold mt-2">${typeof value === "number" && String(label).toLowerCase().includes("revenue") || String(label).toLowerCase().includes("deposits") || String(label).toLowerCase().includes("collections") ? money(value) : value}</p>
+    </div>
+  `).join("");
+}
+
+function renderAlmaPage(){
+  if(!isAdminView()) return;
+
+  const txtScheduled = countType("Discovery Calls from ALMA TXT");
+  const txtCompleted = countIncludes(["completed from txt","alma txt completed"]);
+  const callScheduled = countType("Discovery Calls from ALMA CALL");
+  const callCompleted = countIncludes(["completed from call","alma call completed"]);
+  const txtEnroll = countType("ALMA TXT Enrollment");
+  const callEnroll = countType("ALMA CALL Enrollment");
+  const almaCollectionsValue = activities.filter(a => {
+    const all = [a.rep_name,a.activity_type,a.notes,a.client_name].join(" ").toLowerCase();
+    return all.includes("alma") && ["Deal Closed","Total Collections","Total Build Revenue Collected","Total Pre-Build Deposits Collected","Total Add-On Build Revenue Collected"].includes(a.activity_type);
+  }).reduce((s,a)=>s+Number(a.deal_value||0),0);
+
+  almaTxtScheduled.innerText = txtScheduled;
+  almaTxtCompleted.innerText = txtCompleted;
+  almaCallScheduled.innerText = callScheduled;
+  almaCallCompleted.innerText = callCompleted;
+  almaTxtEnrollments.innerText = txtEnroll;
+  almaCallEnrollments.innerText = callEnroll;
+  almaTxtRatio.innerText = percent(txtEnroll, txtCompleted || txtScheduled);
+  almaCallRatio.innerText = percent(callEnroll, callCompleted || callScheduled);
+  almaCollections.innerText = money(almaCollectionsValue);
+  almaForecast.innerText = countIncludes(["alma forecast"]);
+  almaTotalDials.innerText = countType("ALMA Dial") + countIncludes(["alma dial"]);
+
+  const almaRows = activities.filter(a => [a.rep_name,a.activity_type,a.notes,a.client_name].join(" ").toLowerCase().includes("alma"));
+  almaActivityTable.innerHTML = almaRows.length ? almaRows.map(a=>`
+    <tr class="hover:bg-zinc-900/40">
+      <td class="px-3 py-3 text-sm text-zinc-300">${safe(a.activity_type)}</td>
+      <td class="px-3 py-3 text-sm font-medium">${safe(a.client_name || "No client")}</td>
+      <td class="px-3 py-3 text-sm font-medium">${money(a.deal_value)}</td>
+      <td class="px-3 py-3 text-sm text-zinc-500">${safe(a.notes || "")}</td>
+      <td class="px-3 py-3 text-xs text-zinc-500">${new Date(a.created_at).toLocaleString()}</td>
+    </tr>
+  `).join("") : `<tr><td colspan="5" class="px-3 py-8 text-sm text-zinc-500 text-center">No ALMA activity yet.</td></tr>`;
+}
+
+function repStats(repName){
+  const rows = activities.filter(a => String(a.rep_name || "").toLowerCase().includes(repName.toLowerCase()) || String(a.notes || "").toLowerCase().includes(repName.toLowerCase()));
+  const typeCount = t => rows.filter(a => a.activity_type === t).length;
+  const typeSum = t => rows.filter(a => a.activity_type === t).reduce((s,a)=>s+Number(a.deal_value||0),0);
+  const completed = rows.filter(a => ["Discovery Call","Total Discovery Calls Completed","ALMA Discovery Call Completed"].includes(a.activity_type) || String(a.activity_type).toLowerCase().includes("completed")).length;
+  const scheduled = rows.filter(a => ["Appointment Set","Total Discovery Calls Scheduled","ALMA Discovery Call Scheduled","Discovery Calls from ALMA TXT","Discovery Calls from ALMA CALL"].includes(a.activity_type) || String(a.activity_type).toLowerCase().includes("scheduled")).length;
+  const enrollments = rows.filter(a => ["Total New Enrollments","ALMA TXT Enrollment","ALMA CALL Enrollment"].includes(a.activity_type) || String(a.activity_type).toLowerCase().includes("enrollment")).length;
+  const dropped = typeCount("Total Enrollments Dropped");
+  const collections = rows.filter(a => ["Deal Closed","Total Collections","Total Pre-Build Deposits Collected","Total Build Revenue Collected","Total Add-On Build Revenue Collected"].includes(a.activity_type)).reduce((s,a)=>s+Number(a.deal_value||0),0);
+  const dials = rows.filter(a => ["ALMA Dial","Rep Dial","Cold Call"].includes(a.activity_type) || String(a.activity_type).toLowerCase().includes("dial")).length;
+  const referrals = typeCount("Total Referral Leads");
+  const leads = typeCount("Total New Leads") + typeCount("Website Lead") + typeCount("IG Lead") + typeCount("TikTok Lead") + referrals;
+  const forecast = rows.filter(a => String(a.activity_type).toLowerCase().includes("forecast")).length;
+  return {rows, scheduled, completed, enrollments, dropped, collections, dials, referrals, leads, forecast};
+}
+
+function renderScorecardsPage(){
+  if(!isAdminView()) return;
+
+  const reps = ["ALMA","Lauren","Jordan"];
+  const extraReps = Array.from(new Set(activities.map(a=>a.rep_name).filter(Boolean))).filter(r => !reps.some(base => r.toLowerCase().includes(base.toLowerCase())));
+  const all = [...reps, ...extraReps];
+
+  scorecardGrid.innerHTML = all.map(rep => {
+    const s = repStats(rep);
+    return `
+      <div class="glass-card rounded-xl p-6">
+        <div class="flex items-start justify-between gap-4 mb-5">
+          <div>
+            <h3 class="text-lg font-semibold">${safe(rep)}</h3>
+            <p class="text-xs text-zinc-500">${s.rows.length} tracked activities</p>
+          </div>
+          <span class="text-xs px-3 py-1 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/20">Scorecard</span>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Total Leads</p><p class="text-xl font-semibold mt-2">${s.leads}</p></div>
+          <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Referrals</p><p class="text-xl font-semibold mt-2">${s.referrals}</p></div>
+          <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Scheduled</p><p class="text-xl font-semibold mt-2">${s.scheduled}</p></div>
+          <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Completed</p><p class="text-xl font-semibold mt-2">${s.completed}</p></div>
+          <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Enrollments</p><p class="text-xl font-semibold mt-2">${s.enrollments}</p></div>
+          <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Completion %</p><p class="text-xl font-semibold mt-2">${percent(s.completed,s.scheduled)}</p></div>
+          <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Dropped</p><p class="text-xl font-semibold mt-2">${s.dropped}</p></div>
+          <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Collections</p><p class="text-xl font-semibold mt-2">${money(s.collections)}</p></div>
+          <div class="rounded-xl bg-black/30 border border-zinc-800/50 p-4"><p class="text-xs text-zinc-500">Dials</p><p class="text-xl font-semibold mt-2">${s.dials}</p></div>
+        </div>
+
+        <div class="mt-5">
+          <div class="flex justify-between text-sm mb-2">
+            <span class="text-zinc-400">Enrollment to Completed Discovery</span>
+            <span>${percent(s.enrollments, s.completed)}</span>
+          </div>
+          <div class="h-2 bg-zinc-900 rounded-full overflow-hidden">
+            <div class="h-full bg-blue-500 rounded-full" style="width:${Math.min(100, Number(percent(s.enrollments, s.completed).replace("%","")) || 0)}%"></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+let idsItems = JSON.parse(localStorage.getItem("salesos_ids_items") || "[]");
+
+function addIDSItem(e){
+  e.preventDefault();
+  idsItems.unshift({
+    date: idsDate.value || new Date().toISOString().slice(0,10),
+    identify: idsIdentify.value.trim(),
+    discuss: idsDiscuss.value.trim(),
+    solve: idsSolve.value.trim(),
+    owner: idsOwner.value.trim(),
+    due: idsDue.value || ""
+  });
+  localStorage.setItem("salesos_ids_items", JSON.stringify(idsItems));
+  idsIdentify.value = "";
+  idsDiscuss.value = "";
+  idsSolve.value = "";
+  idsOwner.value = "";
+  idsDue.value = "";
+  renderIDSPage();
+}
+
+function clearIDSItems(){
+  if(!confirm("Clear local IDS items?")) return;
+  idsItems = [];
+  localStorage.setItem("salesos_ids_items", "[]");
+  renderIDSPage();
+}
+
+function renderIDSPage(){
+  if(!isAdminView()) return;
+  if(!idsItems.length){
+    idsItems = [{
+      date: "2026-06-13",
+      identify: "June 13th SEAINT Event",
+      discuss: "Need to have a venue picked out and pricing finalized.",
+      solve: "Assign owner, confirm venue options, collect pricing, and set final decision date.",
+      owner: "Admin",
+      due: ""
+    }];
+  }
+  idsTable.innerHTML = idsItems.map(i => `
+    <tr class="hover:bg-zinc-900/40 align-top">
+      <td class="px-3 py-3 text-xs text-zinc-500">${safe(i.date)}</td>
+      <td class="px-3 py-3 text-sm font-medium">${safe(i.identify)}</td>
+      <td class="px-3 py-3 text-sm text-zinc-400">${safe(i.discuss)}</td>
+      <td class="px-3 py-3 text-sm text-zinc-400">${safe(i.solve)}</td>
+      <td class="px-3 py-3 text-sm text-zinc-300">${safe(i.owner)}</td>
+      <td class="px-3 py-3 text-xs text-zinc-500">${safe(i.due)}</td>
+    </tr>
+  `).join("");
+}
+
 
 function exportCSV(){
   const headers=["created_at","rep_name","activity_type","client_name","deal_value","service_sold","status","notes"];
